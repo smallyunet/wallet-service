@@ -1,0 +1,9 @@
+app:
+  env: "dev"
+  security:
+    allowOrigins: "*"
+
+logging:
+  level:
+    root: INFO
+    com.example.wallet: DEBUG

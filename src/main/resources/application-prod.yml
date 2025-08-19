@@ -1,0 +1,7 @@
+app:
+  env: "prod"
+
+logging:
+  level:
+    root: INFO
+    org.springframework: WARN
