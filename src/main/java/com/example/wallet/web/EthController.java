@@ -5,6 +5,7 @@ import com.example.wallet.domain.blockscout.BlockscoutTransactionResponse;
 import com.example.wallet.domain.eth.EthTransferRequest;
 import com.example.wallet.domain.eth.EthTransferResponse;
 import com.example.wallet.domain.eth.GasFeeSuggestion;
+import com.example.wallet.domain.eth.TransactionStatusResponse;
 import com.example.wallet.service.BalanceService;
 import com.example.wallet.service.BlockscoutService;
 import jakarta.validation.Valid;
@@ -68,6 +69,17 @@ public class EthController {
             @PathVariable String network,
             @RequestBody @Valid EthTransferRequest request) {
         return ResponseEntity.ok(balanceService.sendEthTransaction(network, request));
+    }
+
+    /**
+     * Get transaction status and details by transaction hash
+     * This endpoint queries detailed information about a transaction including receipt
+     */
+    @GetMapping("/tx/{txHash}")
+    public ResponseEntity<TransactionStatusResponse> getTransactionStatus(
+            @PathVariable String network,
+            @PathVariable @NotBlank String txHash) {
+        return ResponseEntity.ok(balanceService.getTransactionStatus(network, txHash));
     }
 
     @GetMapping("/config/rpc")

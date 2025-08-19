@@ -5,6 +5,7 @@ import com.example.wallet.domain.BalanceResponse;
 import com.example.wallet.domain.eth.EthTransferRequest;
 import com.example.wallet.domain.eth.EthTransferResponse;
 import com.example.wallet.domain.eth.GasFeeSuggestion;
+import com.example.wallet.domain.eth.TransactionStatusResponse;
 import com.example.wallet.infra.eth.EthClient;
 import com.example.wallet.infra.btc.BtcClient;
 import org.springframework.stereotype.Service;
@@ -57,5 +58,16 @@ public class BalanceService {
 
     public Object effectiveBtcRpc() {
         return props.getRpc().getBtc();
+    }
+    
+    /**
+     * Get transaction status and receipt by transaction hash
+     *
+     * @param network the Ethereum network name
+     * @param txHash the transaction hash to query
+     * @return detailed transaction status and receipt information
+     */
+    public TransactionStatusResponse getTransactionStatus(String network, String txHash) {
+        return ethClient.getTransactionStatus(network, txHash);
     }
 }

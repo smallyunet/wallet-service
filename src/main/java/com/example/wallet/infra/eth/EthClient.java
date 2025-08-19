@@ -4,6 +4,7 @@ import com.example.wallet.config.AppProperties;
 import com.example.wallet.domain.eth.EthTransferRequest;
 import com.example.wallet.domain.eth.EthTransferResponse;
 import com.example.wallet.domain.eth.GasFeeSuggestion;
+import com.example.wallet.domain.eth.TransactionStatusResponse;
 import org.springframework.stereotype.Component;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameterName;
@@ -15,6 +16,9 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -197,6 +201,120 @@ public class EthClient {
         } catch (Exception e) {
             logger.error("Unexpected error: {}", e.getMessage(), e);
             response.setStatus("failed");
+            response.setError("Unexpected error: " + e.getMessage());
+            return response;
+        }
+    }
+    
+    /**
+     * Get transaction status and receipt by transaction hash
+     * 
+     * @param network the Ethereum network to use
+     * @param txHash the transaction hash
+     * @return transaction status and receipt details
+     */
+    public TransactionStatusResponse getTransactionStatus(String network, String txHash) {
+        String rpcUrl = appProperties.getRpc().getEth().get(network);
+        if (rpcUrl == null) {
+            throw new IllegalArgumentException("Unsupported ETH network: " + network);
+        }
+        
+        Web3j web3j = Web3j.build(new HttpService(rpcUrl));
+        TransactionStatusResponse response = new TransactionStatusResponse();
+        response.setTransactionHash(txHash);
+        
+        try {
+            // First get transaction details
+            EthTransaction ethTransaction = web3j.ethGetTransactionByHash(txHash).send();
+            
+            if (!ethTransaction.hasError() && ethTransaction.getTransaction().isPresent()) {
+                org.web3j.protocol.core.methods.response.Transaction transaction = 
+                    ethTransaction.getTransaction().get();
+                
+                // Set transaction details in response
+                response.setFrom(transaction.getFrom());
+                response.setTo(transaction.getTo());
+                response.setValue(transaction.getValue().toString());
+                response.setGasPrice(transaction.getGasPrice().toString());
+                
+                if (transaction.getBlockHash() != null && !transaction.getBlockHash().equals("0x0")) {
+                    response.setBlockHash(transaction.getBlockHash());
+                    response.setBlockNumber(transaction.getBlockNumber().toString());
+                    
+                    // Now get the receipt since the transaction is mined
+                    EthGetTransactionReceipt receiptResponse = web3j.ethGetTransactionReceipt(txHash).send();
+                    
+                    if (!receiptResponse.hasError() && receiptResponse.getTransactionReceipt().isPresent()) {
+                        TransactionReceipt receipt = receiptResponse.getTransactionReceipt().get();
+                        
+                        response.setBlockHash(receipt.getBlockHash());
+                        response.setBlockNumber(receipt.getBlockNumber().toString());
+                        response.setGasUsed(receipt.getGasUsed().toString());
+                        response.setCumulativeGasUsed(receipt.getCumulativeGasUsed().toString());
+                        
+                        // For post-Byzantium transactions
+                        if (receipt.getStatus() != null) {
+                            boolean success = receipt.isStatusOK();
+                            response.setStatus(success ? "success" : "failed");
+                            if (!success) {
+                                response.setError("Transaction execution failed");
+                            }
+                        }
+                        
+                        // If transaction created a contract
+                        if (receipt.getContractAddress() != null) {
+                            response.setContractAddress(receipt.getContractAddress());
+                        }
+                        
+                        // Get effective gas price if available (EIP-1559)
+                        if (receipt.getEffectiveGasPrice() != null) {
+                            response.setEffectiveGasPrice(receipt.getEffectiveGasPrice().toString());
+                        }
+                        
+                        // Get logs bloom
+                        response.setLogsBloom(receipt.getLogsBloom());
+                        
+                        // Process logs
+                        List<TransactionStatusResponse.TransactionLog> logs = new ArrayList<>();
+                        for (Log log : receipt.getLogs()) {
+                            TransactionStatusResponse.TransactionLog txLog = new TransactionStatusResponse.TransactionLog();
+                            txLog.setAddress(log.getAddress());
+                            txLog.setData(log.getData());
+                            txLog.setBlockHash(log.getBlockHash());
+                            txLog.setBlockNumber(log.getBlockNumber().toString());
+                            txLog.setLogIndex(log.getLogIndex().toString());
+                            txLog.setTransactionIndex(log.getTransactionIndex().toString());
+                            txLog.setTopics(log.getTopics());
+                            logs.add(txLog);
+                        }
+                        response.setLogs(logs);
+                        
+                        // Get confirmation count
+                        EthBlockNumber currentBlock = web3j.ethBlockNumber().send();
+                        BigInteger confirmations = currentBlock.getBlockNumber()
+                                .subtract(receipt.getBlockNumber());
+                        response.setConfirmationCount(confirmations.intValue());
+                    }
+                } else {
+                    // Transaction is pending
+                    response.setStatus("pending");
+                }
+            } else {
+                // Transaction not found
+                response.setStatus("not_found");
+                response.setError("Transaction not found");
+            }
+            
+            return response;
+            
+        } catch (IOException e) {
+            logger.error("Failed to get transaction status: {}", e.getMessage(), e);
+            response.setStatus("error");
+            response.setError("Error fetching transaction: " + e.getMessage());
+            return response;
+        } catch (Exception e) {
+            logger.error("Unexpected error getting transaction status: {}", e.getMessage(), e);
+            response.setStatus("error");
             response.setError("Unexpected error: " + e.getMessage());
             return response;
         }
