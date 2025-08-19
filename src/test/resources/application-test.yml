@@ -1,0 +1,18 @@
+server:
+  port: 8080
+
+app:
+  env: "test"
+  blockscout:
+    eth:
+      mainnet: "https://eth.blockscout.com/api/v2/addresses"
+      sepolia: "https://eth-sepolia.blockscout.com/api/v2/addresses"
+  rpc:
+    eth:
+      mainnet: "https://eth-mainnet.mock"
+      sepolia: "https://ethereum-sepolia.mock"
+    btc:
+      mainnet: "https://blockstream.mock/api"
+      testnet: "https://blockstream.mock/testnet/api"
+  security:
+    allowOrigins: "*"
