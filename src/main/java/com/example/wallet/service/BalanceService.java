@@ -2,6 +2,7 @@ package com.example.wallet.service;
 
 import com.example.wallet.config.AppProperties;
 import com.example.wallet.domain.BalanceResponse;
+import com.example.wallet.domain.eth.GasFeeSuggestion;
 import com.example.wallet.infra.eth.EthClient;
 import com.example.wallet.infra.btc.BtcClient;
 import org.springframework.stereotype.Service;
@@ -20,15 +21,20 @@ public class BalanceService {
     }
 
     public BalanceResponse ethBalance(String network, String address) {
-        // TODO: Implement real RPC call in EthClient
         String wei = ethClient.getBalance(network, address);
         return new BalanceResponse("ETH", network, address, wei);
     }
 
     public BalanceResponse btcBalance(String network, String address) {
-        // TODO: Implement real HTTP call in BtcClient
         String sats = btcClient.getBalance(network, address);
         return new BalanceResponse("BTC", network, address, sats);
+    }
+    
+    /**
+     * Get gas fee suggestions for Ethereum transactions
+     */
+    public GasFeeSuggestion getGasFeeSuggestion(String network) {
+        return ethClient.getGasFeeSuggestion(network);
     }
 
 

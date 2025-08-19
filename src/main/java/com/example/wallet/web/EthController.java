@@ -2,6 +2,7 @@ package com.example.wallet.web;
 
 import com.example.wallet.domain.BalanceResponse;
 import com.example.wallet.domain.blockscout.BlockscoutTransactionResponse;
+import com.example.wallet.domain.eth.GasFeeSuggestion;
 import com.example.wallet.service.BalanceService;
 import com.example.wallet.service.BlockscoutService;
 import jakarta.validation.constraints.NotBlank;
@@ -43,6 +44,15 @@ public class EthController {
             @PathVariable String network,
             @PathVariable @NotBlank String address) {
         return ResponseEntity.ok(balanceService.ethBalance(network, address));
+    }
+    
+    /**
+     * Get gas fee suggestions for the specified network
+     * This endpoint provides recommended gas price values at different priority levels
+     */
+    @GetMapping("/gas-fees")
+    public ResponseEntity<GasFeeSuggestion> getGasFees(@PathVariable String network) {
+        return ResponseEntity.ok(balanceService.getGasFeeSuggestion(network));
     }
 
     @GetMapping("/config/rpc")
