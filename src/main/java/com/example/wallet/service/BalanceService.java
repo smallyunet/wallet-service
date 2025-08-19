@@ -31,11 +31,16 @@ public class BalanceService {
         return new BalanceResponse("BTC", network, address, sats);
     }
 
-    public String effectiveEthRpc() {
-        return props.getRpc().getEthUrl();
+
+    public String effectiveEthRpc(String network) {
+        String url = props.getRpc().getEth().get(network);
+        if (url == null) {
+            throw new IllegalArgumentException("Unsupported ETH network: " + network);
+        }
+        return url;
     }
 
-    public String effectiveBtcRpc() {
-        return props.getRpc().getBtcUrl();
+    public Object effectiveBtcRpc() {
+        return props.getRpc().getBtc();
     }
 }

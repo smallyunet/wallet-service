@@ -26,7 +26,7 @@ public class BtcController {
     }
 
     @GetMapping("/config/api")
-    public ResponseEntity<String> api() {
+    public ResponseEntity<Object> api() {
         return ResponseEntity.ok(balanceService.effectiveBtcRpc());
     }
 }

@@ -18,10 +18,16 @@ management:
         enabled: true
       show-details: when_authorized
 
+
 app:
   env: "default"
   rpc:
-    ethUrl: "https://eth-mainnet.example"
-    btcUrl: "https://blockstream.info/api"
+    eth:
+      mainnet: "https://eth-mainnet.example"
+      goerli: "https://goerli.example"
+      dev: "http://127.0.0.1:8545"
+    btc:
+      mainnet: "https://blockstream.info/api"
+      testnet: "https://blockstream.info/testnet/api"
   security:
     allowOrigins: "https://your-frontend.example"

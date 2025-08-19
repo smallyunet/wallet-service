@@ -1,5 +1,7 @@
 package com.example.wallet.config;
 
+
+import java.util.Map;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties(prefix = "app")
@@ -9,12 +11,13 @@ public class AppProperties {
     private Security security = new Security();
 
     public static class Rpc {
-        private String ethUrl;
-        private String btcUrl;
-        public String getEthUrl() { return ethUrl; }
-        public void setEthUrl(String ethUrl) { this.ethUrl = ethUrl; }
-        public String getBtcUrl() { return btcUrl; }
-        public void setBtcUrl(String btcUrl) { this.btcUrl = btcUrl; }
+        private Map<String, String> eth;
+        private Map<String, String> btc;
+
+        public Map<String, String> getEth() { return eth; }
+        public void setEth(Map<String, String> eth) { this.eth = eth; }
+        public Map<String, String> getBtc() { return btc; }
+        public void setBtc(Map<String, String> btc) { this.btc = btc; }
     }
     public static class Security {
         private String allowOrigins;

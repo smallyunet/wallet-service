@@ -1,5 +1,15 @@
+
+
 app:
   env: "dev"
+  rpc:
+    eth:
+      dev: "http://127.0.0.1:8545"
+      mainnet: "https://mainnet.infura.io/v3/your-key"
+      goerli: "https://goerli.infura.io/v3/your-key"
+    btc:
+      mainnet: "https://blockstream.info/api"
+      testnet: "https://blockstream.info/testnet/api"
   security:
     allowOrigins: "*"
 

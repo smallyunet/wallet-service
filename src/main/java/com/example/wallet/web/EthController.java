@@ -26,7 +26,7 @@ public class EthController {
     }
 
     @GetMapping("/config/rpc")
-    public ResponseEntity<String> rpc() {
-        return ResponseEntity.ok(balanceService.effectiveEthRpc());
+    public ResponseEntity<String> rpc(@PathVariable String network) {
+        return ResponseEntity.ok(balanceService.effectiveEthRpc(network));
     }
 }
