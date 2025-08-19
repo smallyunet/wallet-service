@@ -1,33 +1,19 @@
+
 server:
   port: 8080
 
-spring:
-  application:
-    name: wallet-server
-  jackson:
-    default-property-inclusion: non_null
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,metrics,prometheus
-  endpoint:
-    health:
-      probes:
-        enabled: true
-      show-details: when_authorized
-
-
 app:
   env: "default"
+  blockscout:
+    eth:
+      mainnet: "https://eth.blockscout.com/api/v2/addresses"
+      sepolia: "https://eth-sepolia.blockscout.com/api/v2/addresses"
   rpc:
     eth:
       mainnet: "https://eth-mainnet.example"
-      goerli: "https://goerli.example"
-      dev: "http://127.0.0.1:8545"
+      sepolia: "https://ethereum-sepolia-rpc.publicnode.com"
     btc:
       mainnet: "https://blockstream.info/api"
       testnet: "https://blockstream.info/testnet/api"
   security:
-    allowOrigins: "https://your-frontend.example"
+    allowOrigins: "*"

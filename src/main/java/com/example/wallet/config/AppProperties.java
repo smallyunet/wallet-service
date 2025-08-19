@@ -7,6 +7,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "app")
 public class AppProperties {
     private String env;
+    private Map<String, Map<String, String>> blockscout;
     private Rpc rpc = new Rpc();
     private Security security = new Security();
 
@@ -27,6 +28,8 @@ public class AppProperties {
 
     public String getEnv() { return env; }
     public void setEnv(String env) { this.env = env; }
+    public Map<String, Map<String, String>> getBlockscout() { return blockscout; }
+    public void setBlockscout(Map<String, Map<String, String>> blockscout) { this.blockscout = blockscout; }
     public Rpc getRpc() { return rpc; }
     public void setRpc(Rpc rpc) { this.rpc = rpc; }
     public Security getSecurity() { return security; }

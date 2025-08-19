@@ -1,0 +1,66 @@
+package com.example.wallet.infra.eth;
+
+import com.example.wallet.config.AppProperties;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.util.UriComponentsBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+@Component
+public class BlockscoutProvider {
+    private static final Logger logger = LoggerFactory.getLogger(BlockscoutProvider.class);
+    
+    private final AppProperties appProperties;
+    private final RestTemplate restTemplate = new RestTemplate();
+
+    public BlockscoutProvider(AppProperties appProperties) {
+        this.appProperties = appProperties;
+    }
+
+    public String getTransactions(String network, String address, String filter) {
+        // Validate network
+        String baseUrl = appProperties.getBlockscout().get("eth").get(network);
+        if (baseUrl == null) {
+            throw new IllegalArgumentException("Unsupported blockscout network: " + network);
+        }
+        
+        try {
+            // Build URL - optionally add filter parameter if it's provided and not empty
+            UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(baseUrl)
+                    .pathSegment(address, "transactions");
+            
+            // Only add filter parameter if it's provided and not empty/blank
+            if (filter != null && !filter.trim().isEmpty()) {
+                builder.queryParam("filter", filter);
+            }
+            
+            String url = builder.toUriString();
+            logger.info("Requesting transactions from: {}", url);
+            
+            // Use exchange with proper headers
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("accept", "application/json");
+            
+            HttpEntity<?> entity = new HttpEntity<>(headers);
+            ResponseEntity<String> response = restTemplate.exchange(
+                url, 
+                HttpMethod.GET, 
+                entity, 
+                String.class
+            );
+            return response.getBody();
+        } catch (HttpClientErrorException e) {
+            logger.error("Error from Blockscout API: {} - {}", e.getStatusCode(), e.getResponseBodyAsString());
+            throw new RuntimeException("Blockscout API error: " + e.getResponseBodyAsString(), e);
+        } catch (Exception e) {
+            logger.error("Error fetching transactions", e);
+            throw new RuntimeException("Failed to fetch transactions: " + e.getMessage(), e);
+        }
+    }
+}

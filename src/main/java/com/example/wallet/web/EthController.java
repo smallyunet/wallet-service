@@ -2,6 +2,7 @@ package com.example.wallet.web;
 
 import com.example.wallet.domain.BalanceResponse;
 import com.example.wallet.service.BalanceService;
+import com.example.wallet.service.BlockscoutService;
 import jakarta.validation.constraints.NotBlank;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -13,9 +14,18 @@ import org.springframework.web.bind.annotation.*;
 public class EthController {
 
     private final BalanceService balanceService;
+    private final BlockscoutService blockscoutService;
 
-    public EthController(BalanceService balanceService) {
+    public EthController(BalanceService balanceService, BlockscoutService blockscoutService) {
         this.balanceService = balanceService;
+        this.blockscoutService = blockscoutService;
+    }
+    @GetMapping("/{address}/transactions")
+    public ResponseEntity<String> getTransactions(
+            @PathVariable String network,
+            @PathVariable @NotBlank String address,
+            @RequestParam(required = false) String filter) {
+        return ResponseEntity.ok(blockscoutService.getTransactions(network, address, filter));
     }
 
     @GetMapping("/{address}/balance")

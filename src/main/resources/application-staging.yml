@@ -1,6 +1,0 @@
-app:
-  env: "staging"
-
-logging:
-  level:
-    root: INFO
