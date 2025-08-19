@@ -1,6 +1,7 @@
 package com.example.wallet.web;
 
 import com.example.wallet.domain.BalanceResponse;
+import com.example.wallet.domain.blockscout.BlockscoutTransactionResponse;
 import com.example.wallet.service.BalanceService;
 import com.example.wallet.service.BlockscoutService;
 import jakarta.validation.constraints.NotBlank;
@@ -20,8 +21,17 @@ public class EthController {
         this.balanceService = balanceService;
         this.blockscoutService = blockscoutService;
     }
+    
     @GetMapping("/{address}/transactions")
-    public ResponseEntity<String> getTransactions(
+    public ResponseEntity<BlockscoutTransactionResponse> getTransactions(
+            @PathVariable String network,
+            @PathVariable @NotBlank String address,
+            @RequestParam(required = false) String filter) {
+        return ResponseEntity.ok(blockscoutService.getTransactionsAsObject(network, address, filter));
+    }
+    
+    @GetMapping("/{address}/transactions/raw")
+    public ResponseEntity<String> getTransactionsRaw(
             @PathVariable String network,
             @PathVariable @NotBlank String address,
             @RequestParam(required = false) String filter) {

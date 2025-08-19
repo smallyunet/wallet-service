@@ -1,6 +1,7 @@
 package com.example.wallet.infra.eth;
 
 import com.example.wallet.config.AppProperties;
+import com.example.wallet.domain.blockscout.BlockscoutTransactionResponse;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
@@ -23,31 +24,16 @@ public class BlockscoutProvider {
         this.appProperties = appProperties;
     }
 
+    /**
+     * Get transactions as raw JSON string
+     */
     public String getTransactions(String network, String address, String filter) {
-        // Validate network
-        String baseUrl = appProperties.getBlockscout().get("eth").get(network);
-        if (baseUrl == null) {
-            throw new IllegalArgumentException("Unsupported blockscout network: " + network);
-        }
-        
         try {
-            // Build URL - optionally add filter parameter if it's provided and not empty
-            UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(baseUrl)
-                    .pathSegment(address, "transactions");
+            // Build URL with optional filter
+            String url = buildTransactionUrl(network, address, filter);
             
-            // Only add filter parameter if it's provided and not empty/blank
-            if (filter != null && !filter.trim().isEmpty()) {
-                builder.queryParam("filter", filter);
-            }
-            
-            String url = builder.toUriString();
-            logger.info("Requesting transactions from: {}", url);
-            
-            // Use exchange with proper headers
-            HttpHeaders headers = new HttpHeaders();
-            headers.set("accept", "application/json");
-            
-            HttpEntity<?> entity = new HttpEntity<>(headers);
+            // Make request with proper headers
+            HttpEntity<?> entity = buildJsonHeaders();
             ResponseEntity<String> response = restTemplate.exchange(
                 url, 
                 HttpMethod.GET, 
@@ -62,5 +48,64 @@ public class BlockscoutProvider {
             logger.error("Error fetching transactions", e);
             throw new RuntimeException("Failed to fetch transactions: " + e.getMessage(), e);
         }
+    }
+    
+    /**
+     * Get transactions as parsed object
+     */
+    public BlockscoutTransactionResponse getTransactionsAsObject(String network, String address, String filter) {
+        try {
+            // Build URL with optional filter
+            String url = buildTransactionUrl(network, address, filter);
+            
+            // Make request with proper headers
+            HttpEntity<?> entity = buildJsonHeaders();
+            ResponseEntity<BlockscoutTransactionResponse> response = restTemplate.exchange(
+                url, 
+                HttpMethod.GET, 
+                entity, 
+                BlockscoutTransactionResponse.class
+            );
+            return response.getBody();
+        } catch (HttpClientErrorException e) {
+            logger.error("Error from Blockscout API: {} - {}", e.getStatusCode(), e.getResponseBodyAsString());
+            throw new RuntimeException("Blockscout API error: " + e.getResponseBodyAsString(), e);
+        } catch (Exception e) {
+            logger.error("Error fetching transactions", e);
+            throw new RuntimeException("Failed to fetch transactions: " + e.getMessage(), e);
+        }
+    }
+    
+    /**
+     * Helper method to build transaction URL
+     */
+    private String buildTransactionUrl(String network, String address, String filter) {
+        // Validate network
+        String baseUrl = appProperties.getBlockscout().get("eth").get(network);
+        if (baseUrl == null) {
+            throw new IllegalArgumentException("Unsupported blockscout network: " + network);
+        }
+        
+        // Build URL - optionally add filter parameter if it's provided and not empty
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(baseUrl)
+                .pathSegment(address, "transactions");
+        
+        // Only add filter parameter if it's provided and not empty/blank
+        if (filter != null && !filter.trim().isEmpty()) {
+            builder.queryParam("filter", filter);
+        }
+        
+        String url = builder.toUriString();
+        logger.info("Requesting transactions from: {}", url);
+        return url;
+    }
+    
+    /**
+     * Helper method to build JSON headers
+     */
+    private HttpEntity<?> buildJsonHeaders() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("accept", "application/json");
+        return new HttpEntity<>(headers);
     }
 }
