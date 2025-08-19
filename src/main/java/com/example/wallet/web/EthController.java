@@ -5,6 +5,7 @@ import com.example.wallet.domain.blockscout.BlockscoutTransactionResponse;
 import com.example.wallet.domain.eth.EthTransferRequest;
 import com.example.wallet.domain.eth.EthTransferResponse;
 import com.example.wallet.domain.eth.GasFeeSuggestion;
+import com.example.wallet.domain.eth.NonceResponse;
 import com.example.wallet.domain.eth.TransactionStatusResponse;
 import com.example.wallet.service.BalanceService;
 import com.example.wallet.service.BlockscoutService;
@@ -48,6 +49,17 @@ public class EthController {
             @PathVariable String network,
             @PathVariable @NotBlank String address) {
         return ResponseEntity.ok(balanceService.ethBalance(network, address));
+    }
+    
+    /**
+     * Get the current nonce for an address
+     * This is useful when building transactions client-side
+     */
+    @GetMapping("/{address}/nonce")
+    public ResponseEntity<NonceResponse> getNonce(
+            @PathVariable String network,
+            @PathVariable @NotBlank String address) {
+        return ResponseEntity.ok(balanceService.getNonce(network, address));
     }
     
     /**

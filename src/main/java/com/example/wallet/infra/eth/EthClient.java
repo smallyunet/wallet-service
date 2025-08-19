@@ -47,6 +47,31 @@ public class EthClient {
     }
     
     /**
+     * Get the current nonce for an address
+     * 
+     * @param network the Ethereum network
+     * @param address the address to query
+     * @return the current nonce as a hex string with 0x prefix
+     */
+    public String getNonce(String network, String address) {
+        String rpcUrl = appProperties.getRpc().getEth().get(network);
+        if (rpcUrl == null) {
+            throw new IllegalArgumentException("Unsupported ETH network: " + network);
+        }
+        Web3j web3j = Web3j.build(new HttpService(rpcUrl));
+        try {
+            EthGetTransactionCount ethGetTransactionCount = web3j
+                .ethGetTransactionCount(address, DefaultBlockParameterName.LATEST)
+                .send();
+            
+            return "0x" + ethGetTransactionCount.getTransactionCount().toString(16);
+        } catch (IOException e) {
+            logger.error("Failed to fetch nonce for address {}: {}", address, e.getMessage(), e);
+            throw new RuntimeException("Failed to fetch nonce: " + e.getMessage(), e);
+        }
+    }
+    
+    /**
      * Get gas fee suggestions for transactions
      * This method combines on-chain data with estimated confirmation times
      */

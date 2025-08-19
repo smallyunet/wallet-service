@@ -5,6 +5,7 @@ import com.example.wallet.domain.BalanceResponse;
 import com.example.wallet.domain.eth.EthTransferRequest;
 import com.example.wallet.domain.eth.EthTransferResponse;
 import com.example.wallet.domain.eth.GasFeeSuggestion;
+import com.example.wallet.domain.eth.NonceResponse;
 import com.example.wallet.domain.eth.TransactionStatusResponse;
 import com.example.wallet.infra.eth.EthClient;
 import com.example.wallet.infra.btc.BtcClient;
@@ -69,5 +70,17 @@ public class BalanceService {
      */
     public TransactionStatusResponse getTransactionStatus(String network, String txHash) {
         return ethClient.getTransactionStatus(network, txHash);
+    }
+    
+    /**
+     * Get the current nonce for an Ethereum address
+     *
+     * @param network the Ethereum network name
+     * @param address the address to query
+     * @return the current nonce value
+     */
+    public NonceResponse getNonce(String network, String address) {
+        String nonce = ethClient.getNonce(network, address);
+        return new NonceResponse(network, address, nonce);
     }
 }
