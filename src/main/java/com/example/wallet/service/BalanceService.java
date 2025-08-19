@@ -2,6 +2,8 @@ package com.example.wallet.service;
 
 import com.example.wallet.config.AppProperties;
 import com.example.wallet.domain.BalanceResponse;
+import com.example.wallet.domain.eth.EthTransferRequest;
+import com.example.wallet.domain.eth.EthTransferResponse;
 import com.example.wallet.domain.eth.GasFeeSuggestion;
 import com.example.wallet.infra.eth.EthClient;
 import com.example.wallet.infra.btc.BtcClient;
@@ -36,7 +38,14 @@ public class BalanceService {
     public GasFeeSuggestion getGasFeeSuggestion(String network) {
         return ethClient.getGasFeeSuggestion(network);
     }
-
+    
+    /**
+     * Send an Ethereum transaction
+     * Takes a signed transaction from client and broadcasts it to the network
+     */
+    public EthTransferResponse sendEthTransaction(String network, EthTransferRequest request) {
+        return ethClient.sendTransaction(network, request);
+    }
 
     public String effectiveEthRpc(String network) {
         String url = props.getRpc().getEth().get(network);

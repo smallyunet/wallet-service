@@ -2,9 +2,12 @@ package com.example.wallet.web;
 
 import com.example.wallet.domain.BalanceResponse;
 import com.example.wallet.domain.blockscout.BlockscoutTransactionResponse;
+import com.example.wallet.domain.eth.EthTransferRequest;
+import com.example.wallet.domain.eth.EthTransferResponse;
 import com.example.wallet.domain.eth.GasFeeSuggestion;
 import com.example.wallet.service.BalanceService;
 import com.example.wallet.service.BlockscoutService;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -53,6 +56,18 @@ public class EthController {
     @GetMapping("/gas-fees")
     public ResponseEntity<GasFeeSuggestion> getGasFees(@PathVariable String network) {
         return ResponseEntity.ok(balanceService.getGasFeeSuggestion(network));
+    }
+    
+    /**
+     * Send an ETH transaction
+     * This endpoint broadcasts a signed transaction to the network
+     * The transaction must be signed by the client before sending
+     */
+    @PostMapping("/transfer")
+    public ResponseEntity<EthTransferResponse> sendTransaction(
+            @PathVariable String network,
+            @RequestBody @Valid EthTransferRequest request) {
+        return ResponseEntity.ok(balanceService.sendEthTransaction(network, request));
     }
 
     @GetMapping("/config/rpc")
