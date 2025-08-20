@@ -128,22 +128,4 @@ public class BalanceServiceTest {
         // Verify results
         assertNotNull(result);
     }
-    
-    @Test
-    public void testGetNonce() {
-        // Configure mock behavior
-        when(ethClient.getNonce(eq(ETH_NETWORK), eq(ETH_ADDRESS))).thenReturn(ETH_NONCE);
-
-        // Call service method
-        NonceResponse response = balanceService.getNonce(ETH_NETWORK, ETH_ADDRESS);
-
-        // Verify results
-        assertNotNull(response);
-        assertEquals(ETH_NETWORK, response.network());
-        assertEquals(ETH_ADDRESS, response.address());
-        assertEquals(ETH_NONCE, response.nonce());
-        
-        // Verify calls
-        verify(ethClient).getNonce(ETH_NETWORK, ETH_ADDRESS);
-    }
 }

@@ -2,6 +2,7 @@ package com.example.wallet.web;
 
 import com.example.wallet.domain.BalanceResponse;
 import com.example.wallet.service.BalanceService;
+import com.example.wallet.service.BlockscoutService;
 import com.example.wallet.utils.TestUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
