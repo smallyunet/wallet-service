@@ -8,10 +8,20 @@ import com.example.wallet.domain.eth.TransactionStatusResponse;
 import org.springframework.stereotype.Component;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameterName;
+import org.web3j.protocol.core.methods.request.Transaction;
 import org.web3j.protocol.core.methods.response.*;
 import org.web3j.protocol.http.HttpService;
 import org.web3j.utils.Convert;
 import org.web3j.utils.Numeric;
+import org.web3j.abi.FunctionEncoder;
+import org.web3j.abi.FunctionReturnDecoder;
+import org.web3j.abi.TypeReference;
+import org.web3j.abi.datatypes.Address;
+import org.web3j.abi.datatypes.Function;
+import org.web3j.abi.datatypes.Type;
+import org.web3j.abi.datatypes.Utf8String;
+import org.web3j.abi.datatypes.generated.Uint256;
+import org.web3j.abi.datatypes.generated.Uint8;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -68,6 +78,108 @@ public class EthClient {
         } catch (IOException e) {
             logger.error("Failed to fetch nonce for address {}: {}", address, e.getMessage(), e);
             throw new RuntimeException("Failed to fetch nonce: " + e.getMessage(), e);
+        }
+    }
+    
+    /**
+     * Get ERC-20 token balance for a specific address
+     * 
+     * @param network the Ethereum network
+     * @param tokenAddress the token contract address
+     * @param walletAddress the wallet address to check balance for
+     * @return the token balance response with token details
+     */
+    public com.example.wallet.domain.eth.TokenBalanceResponse getTokenBalance(String network, String tokenAddress, String walletAddress) {
+        String rpcUrl = appProperties.getRpc().getEth().get(network);
+        if (rpcUrl == null) {
+            throw new IllegalArgumentException("Unsupported ETH network: " + network);
+        }
+        
+        Web3j web3j = Web3j.build(new HttpService(rpcUrl));
+        try {
+            // Get balance
+            Function balanceFunction = new Function(
+                "balanceOf", 
+                List.of(new Address(walletAddress)), 
+                List.of(new TypeReference<Uint256>() {})
+            );
+            String encodedBalanceFunction = FunctionEncoder.encode(balanceFunction);
+            
+            EthCall balanceCall = web3j.ethCall(
+                Transaction.createEthCallTransaction(walletAddress, tokenAddress, encodedBalanceFunction),
+                DefaultBlockParameterName.LATEST
+            ).send();
+            
+            String balanceResult = balanceCall.getValue();
+            List<Type> balanceDecoded = FunctionReturnDecoder.decode(balanceResult, balanceFunction.getOutputParameters());
+            BigInteger balance = balanceDecoded.isEmpty() ? BigInteger.ZERO : (BigInteger) balanceDecoded.get(0).getValue();
+            
+            // Get decimals
+            Function decimalsFunction = new Function(
+                "decimals", 
+                List.of(), 
+                List.of(new TypeReference<Uint8>() {})
+            );
+            String encodedDecimalsFunction = FunctionEncoder.encode(decimalsFunction);
+            
+            EthCall decimalsCall = web3j.ethCall(
+                Transaction.createEthCallTransaction(walletAddress, tokenAddress, encodedDecimalsFunction),
+                DefaultBlockParameterName.LATEST
+            ).send();
+            
+            String decimalsResult = decimalsCall.getValue();
+            List<Type> decimalsDecoded = FunctionReturnDecoder.decode(decimalsResult, decimalsFunction.getOutputParameters());
+            BigInteger decimals = decimalsDecoded.isEmpty() ? BigInteger.valueOf(18) : (BigInteger) decimalsDecoded.get(0).getValue();
+            
+            // Get symbol
+            Function symbolFunction = new Function(
+                "symbol", 
+                List.of(), 
+                List.of(new TypeReference<Utf8String>() {})
+            );
+            String encodedSymbolFunction = FunctionEncoder.encode(symbolFunction);
+            
+            EthCall symbolCall = web3j.ethCall(
+                Transaction.createEthCallTransaction(walletAddress, tokenAddress, encodedSymbolFunction),
+                DefaultBlockParameterName.LATEST
+            ).send();
+            
+            String symbolResult = symbolCall.getValue();
+            List<Type> symbolDecoded = FunctionReturnDecoder.decode(symbolResult, symbolFunction.getOutputParameters());
+            String symbol = symbolDecoded.isEmpty() ? "" : (String) symbolDecoded.get(0).getValue();
+            
+            // Get name
+            Function nameFunction = new Function(
+                "name", 
+                List.of(), 
+                List.of(new TypeReference<Utf8String>() {})
+            );
+            String encodedNameFunction = FunctionEncoder.encode(nameFunction);
+            
+            EthCall nameCall = web3j.ethCall(
+                Transaction.createEthCallTransaction(walletAddress, tokenAddress, encodedNameFunction),
+                DefaultBlockParameterName.LATEST
+            ).send();
+            
+            String nameResult = nameCall.getValue();
+            List<Type> nameDecoded = FunctionReturnDecoder.decode(nameResult, nameFunction.getOutputParameters());
+            String name = nameDecoded.isEmpty() ? "" : (String) nameDecoded.get(0).getValue();
+            
+            // Create response
+            return new com.example.wallet.domain.eth.TokenBalanceResponse(
+                tokenAddress, 
+                network, 
+                walletAddress, 
+                "0x" + balance.toString(16), 
+                symbol,
+                name,
+                decimals.toString()
+            );
+            
+        } catch (IOException e) {
+            logger.error("Failed to fetch token balance for token {} and address {}: {}", 
+                         tokenAddress, walletAddress, e.getMessage(), e);
+            throw new RuntimeException("Failed to fetch token balance: " + e.getMessage(), e);
         }
     }
     

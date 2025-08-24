@@ -8,6 +8,7 @@ import com.example.wallet.domain.eth.EthTransferRequest;
 import com.example.wallet.domain.eth.EthTransferResponse;
 import com.example.wallet.domain.eth.GasFeeSuggestion;
 import com.example.wallet.domain.eth.NonceResponse;
+import com.example.wallet.domain.eth.TokenBalanceResponse;
 import com.example.wallet.domain.eth.TransactionStatusResponse;
 import com.example.wallet.service.BalanceService;
 import com.example.wallet.service.BlockscoutService;
@@ -78,6 +79,22 @@ public class EthController {
             @PathVariable String network,
             @PathVariable @NotBlank String address) {
         return ResponseEntity.ok(balanceService.ethBalance(network, address));
+    }
+    
+    /**
+     * Get ERC-20 token balance for a wallet address
+     * 
+     * @param network Ethereum network (e.g., "sepolia")
+     * @param tokenAddress The token contract address
+     * @param walletAddress The wallet address to check balance for
+     * @return Token balance and token details
+     */
+    @GetMapping("/tokens/{tokenAddress}/balances/{walletAddress}")
+    public ResponseEntity<TokenBalanceResponse> getTokenBalance(
+            @PathVariable String network,
+            @PathVariable @NotBlank String tokenAddress,
+            @PathVariable @NotBlank String walletAddress) {
+        return ResponseEntity.ok(balanceService.getTokenBalance(network, tokenAddress, walletAddress));
     }
     
     /**

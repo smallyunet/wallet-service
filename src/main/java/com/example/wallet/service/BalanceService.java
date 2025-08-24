@@ -83,4 +83,16 @@ public class BalanceService {
         String nonce = ethClient.getNonce(network, address);
         return new NonceResponse(network, address, nonce);
     }
+    
+    /**
+     * Get ERC-20 token balance for a specific address
+     *
+     * @param network the Ethereum network
+     * @param tokenAddress the token contract address
+     * @param walletAddress the wallet address to check balance for
+     * @return the token balance response with token details
+     */
+    public com.example.wallet.domain.eth.TokenBalanceResponse getTokenBalance(String network, String tokenAddress, String walletAddress) {
+        return ethClient.getTokenBalance(network, tokenAddress, walletAddress);
+    }
 }
