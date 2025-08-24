@@ -7,7 +7,7 @@ import com.example.wallet.domain.eth.NonceResponse;
 import com.example.wallet.domain.eth.TokenTransferRequest;
 import com.example.wallet.domain.eth.TokenTransferResponse;
 import com.example.wallet.domain.eth.TransactionStatusResponse;
-import com.example.wallet.infra.eth.EthClient;
+import com.example.wallet.infra.eth.IEthClient;
 import org.springframework.stereotype.Service;
 
 /**
@@ -16,9 +16,9 @@ import org.springframework.stereotype.Service;
 @Service
 public class TransactionService {
 
-    private final EthClient ethClient;
+    private final IEthClient ethClient;
 
-    public TransactionService(EthClient ethClient) {
+    public TransactionService(IEthClient ethClient) {
         this.ethClient = ethClient;
     }
     
@@ -68,7 +68,6 @@ public class TransactionService {
      * @return the current nonce value
      */
     public NonceResponse getNonce(String network, String address) {
-        String nonce = ethClient.getNonce(network, address);
-        return new NonceResponse(network, address, nonce);
+        return ethClient.getNonce(network, address);
     }
 }

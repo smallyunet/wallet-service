@@ -1,6 +1,6 @@
 package com.example.wallet.infra.eth;
 
-import com.example.wallet.config.AppProperties;
+import com.example.wallet.config.IAppProperties;
 import com.example.wallet.domain.eth.EthTransferRequest;
 import com.example.wallet.domain.eth.EthTransferResponse;
 import com.example.wallet.domain.eth.GasFeeSuggestion;
@@ -38,9 +38,9 @@ import org.slf4j.LoggerFactory;
 public class EthClient {
     private static final Logger logger = LoggerFactory.getLogger(EthClient.class);
     private static final BigInteger DEFAULT_GAS_LIMIT = BigInteger.valueOf(21000); // Standard ETH transfer
-    private final AppProperties appProperties;
+    private final IAppProperties appProperties;
 
-    public EthClient(AppProperties appProperties) {
+    public EthClient(IAppProperties appProperties) {
         this.appProperties = appProperties;
     }
 

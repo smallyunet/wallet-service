@@ -4,7 +4,7 @@ import com.example.wallet.domain.blockscout.BlockscoutTransactionResponse;
 import com.example.wallet.domain.eth.BlockscoutTokenInfo;
 import com.example.wallet.domain.eth.BlockscoutTokenListResponse;
 import com.example.wallet.domain.eth.TokenTransferListResponse;
-import com.example.wallet.infra.eth.BlockscoutProvider;
+import com.example.wallet.infra.eth.IBlockscoutProvider;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -28,9 +28,9 @@ public class BlockscoutService {
     public BlockscoutTokenInfo getTokenByAddress(String network, String tokenAddress) {
         return blockscoutProvider.getTokenByAddress(network, tokenAddress);
     }
-    private final BlockscoutProvider blockscoutProvider;
+    private final IBlockscoutProvider blockscoutProvider;
 
-    public BlockscoutService(BlockscoutProvider blockscoutProvider) {
+    public BlockscoutService(IBlockscoutProvider blockscoutProvider) {
         this.blockscoutProvider = blockscoutProvider;
     }
 

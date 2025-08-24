@@ -1,19 +1,19 @@
 package com.example.wallet.service;
 
-import com.example.wallet.config.AppProperties;
+import com.example.wallet.config.IAppProperties;
 import com.example.wallet.domain.BalanceResponse;
-import com.example.wallet.infra.eth.EthClient;
-import com.example.wallet.infra.btc.BtcClient;
+import com.example.wallet.infra.eth.IEthClient;
+import com.example.wallet.infra.btc.IBtcClient;
 import org.springframework.stereotype.Service;
 
 @Service
 public class BalanceService {
 
-    private final EthClient ethClient;
-    private final BtcClient btcClient;
-    private final AppProperties props;
+    private final IEthClient ethClient;
+    private final IBtcClient btcClient;
+    private final IAppProperties props;
 
-    public BalanceService(EthClient ethClient, BtcClient btcClient, AppProperties props) {
+    public BalanceService(IEthClient ethClient, IBtcClient btcClient, IAppProperties props) {
         this.ethClient = ethClient;
         this.btcClient = btcClient;
         this.props = props;
