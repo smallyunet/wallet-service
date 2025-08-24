@@ -3,7 +3,7 @@ package com.example.wallet.domain.eth;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * 代表代币转账的总计信息
+ * Represents the total information for token transfers
  */
 public class TransferTotal {
     @JsonProperty("decimals")

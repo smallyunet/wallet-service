@@ -3,7 +3,7 @@ package com.example.wallet.domain.eth;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * 代表一个 ERC-20 token 的详细信息
+ * Represents the detailed information of an ERC-20 token
  */
 public class TokenInfo {
     private String address;

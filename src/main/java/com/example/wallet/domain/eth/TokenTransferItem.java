@@ -3,7 +3,7 @@ package com.example.wallet.domain.eth;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * 代表单个代币转账记录
+ * Represents a single token transfer record
  */
 public class TokenTransferItem {
     @JsonProperty("block_hash")

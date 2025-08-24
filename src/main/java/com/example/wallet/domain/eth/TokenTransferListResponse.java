@@ -4,7 +4,7 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * 代表代币转账记录的响应
+ * Represents the response of token transfer records
  */
 public class TokenTransferListResponse {
     @JsonProperty("items")
