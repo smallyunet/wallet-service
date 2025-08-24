@@ -3,6 +3,7 @@ package com.example.wallet.service;
 import com.example.wallet.domain.blockscout.BlockscoutTransactionResponse;
 import com.example.wallet.domain.eth.BlockscoutTokenInfo;
 import com.example.wallet.domain.eth.BlockscoutTokenListResponse;
+import com.example.wallet.domain.eth.TokenTransferListResponse;
 import com.example.wallet.infra.eth.BlockscoutProvider;
 import org.springframework.stereotype.Service;
 
@@ -45,5 +46,17 @@ public class BlockscoutService {
      */
     public BlockscoutTransactionResponse getTransactionsAsObject(String network, String address, String filter) {
         return blockscoutProvider.getTransactionsAsObject(network, address, filter);
+    }
+    
+    /**
+     * Get token transfers for a specific address
+     * @param network Network name (e.g. "sepolia")
+     * @param address Wallet address to get token transfers for
+     * @param tokenAddress Optional token address to filter by specific token (null for all tokens)
+     * @param type Optional filter by type (e.g. "from", "to", null for all)
+     * @return List of token transfers
+     */
+    public TokenTransferListResponse getTokenTransfers(String network, String address, String tokenAddress, String type) {
+        return blockscoutProvider.getTokenTransfers(network, address, tokenAddress, type);
     }
 }

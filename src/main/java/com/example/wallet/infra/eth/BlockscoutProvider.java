@@ -4,6 +4,7 @@ import com.example.wallet.config.AppProperties;
 import com.example.wallet.domain.blockscout.BlockscoutTransactionResponse;
 import com.example.wallet.domain.eth.BlockscoutTokenInfo;
 import com.example.wallet.domain.eth.BlockscoutTokenListResponse;
+import com.example.wallet.domain.eth.TokenTransferListResponse;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
@@ -182,5 +183,57 @@ public class BlockscoutProvider {
         HttpHeaders headers = new HttpHeaders();
         headers.set("accept", "application/json");
         return new HttpEntity<>(headers);
+    }
+    
+    /**
+     * Get token transfers for a specific address
+     * @param network Network name (e.g. "sepolia")
+     * @param address Wallet address to get token transfers for
+     * @param tokenAddress Optional token address to filter by specific token (null for all tokens)
+     * @param type Optional filter by type (e.g. "from", "to", null for all)
+     * @return List of token transfers
+     */
+    public TokenTransferListResponse getTokenTransfers(String network, String address, String tokenAddress, String type) {
+        try {
+            String baseUrl = appProperties.getBlockscout().get("eth").get(network);
+            if (baseUrl == null) {
+                throw new IllegalArgumentException("Unsupported blockscout network: " + network);
+            }
+            
+            // Construct base URL without the /api/v2/addresses part
+            String rootUrl = baseUrl.replace("/api/v2/addresses", "");
+            
+            // Build URL for token transfers
+            UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(rootUrl)
+                    .path("/api/v2/addresses/" + address + "/token-transfers");
+            
+            // Add optional filter parameters
+            if (tokenAddress != null && !tokenAddress.trim().isEmpty()) {
+                builder.queryParam("token", tokenAddress);
+            }
+            
+            if (type != null && !type.trim().isEmpty()) {
+                builder.queryParam("type", type);
+            }
+            
+            String url = builder.toUriString();
+            logger.info("Requesting token transfers from: {}", url);
+            
+            // Make request with proper headers
+            HttpEntity<?> entity = buildJsonHeaders();
+            ResponseEntity<TokenTransferListResponse> response = restTemplate.exchange(
+                    url,
+                    HttpMethod.GET,
+                    entity,
+                    TokenTransferListResponse.class
+            );
+            return response.getBody();
+        } catch (HttpClientErrorException e) {
+            logger.error("Error from Blockscout API: {} - {}", e.getStatusCode(), e.getResponseBodyAsString());
+            throw new RuntimeException("Blockscout API error: " + e.getResponseBodyAsString(), e);
+        } catch (Exception e) {
+            logger.error("Error fetching token transfers", e);
+            throw new RuntimeException("Failed to fetch token transfers: " + e.getMessage(), e);
+        }
     }
 }

@@ -9,6 +9,7 @@ import com.example.wallet.domain.eth.EthTransferResponse;
 import com.example.wallet.domain.eth.GasFeeSuggestion;
 import com.example.wallet.domain.eth.NonceResponse;
 import com.example.wallet.domain.eth.TokenBalanceResponse;
+import com.example.wallet.domain.eth.TokenTransferListResponse;
 import com.example.wallet.domain.eth.TransactionStatusResponse;
 import com.example.wallet.service.BalanceService;
 import com.example.wallet.service.BlockscoutService;
@@ -143,5 +144,23 @@ public class EthController {
     @GetMapping("/config/rpc")
     public ResponseEntity<String> rpc(@PathVariable String network) {
         return ResponseEntity.ok(balanceService.effectiveEthRpc(network));
+    }
+    
+    /**
+     * Get token transfers for a specific address
+     * 
+     * @param network Ethereum network (e.g., "sepolia")
+     * @param address Wallet address to get token transfers for
+     * @param tokenAddress Optional token address to filter by specific token
+     * @param type Optional filter by type (e.g. "from", "to")
+     * @return List of token transfers
+     */
+    @GetMapping("/{address}/token-transfers")
+    public ResponseEntity<TokenTransferListResponse> getTokenTransfers(
+            @PathVariable String network,
+            @PathVariable @NotBlank String address,
+            @RequestParam(required = false) String tokenAddress,
+            @RequestParam(required = false) String type) {
+        return ResponseEntity.ok(blockscoutService.getTokenTransfers(network, address, tokenAddress, type));
     }
 }
