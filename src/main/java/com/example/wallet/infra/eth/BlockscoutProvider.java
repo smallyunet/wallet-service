@@ -2,6 +2,7 @@ package com.example.wallet.infra.eth;
 
 import com.example.wallet.config.AppProperties;
 import com.example.wallet.domain.blockscout.BlockscoutTransactionResponse;
+import com.example.wallet.domain.eth.BlockscoutTokenListResponse;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
@@ -15,6 +16,45 @@ import org.slf4j.LoggerFactory;
 
 @Component
 public class BlockscoutProvider {
+    /**
+     * Query ERC-20 and other token information
+     * @param network Network name (e.g. "sepolia")
+     * @param tokenSymbol Token symbol to search for (e.g. "USDT")
+     * @param type Token type(s) to filter by (e.g. "ERC-20,ERC-721,ERC-1155")
+     */
+    public BlockscoutTokenListResponse getTokens(String network, String tokenSymbol, String type) {
+        try {
+            String baseUrl = appProperties.getBlockscout().get("eth").get(network);
+            if (baseUrl == null) {
+                throw new IllegalArgumentException("Unsupported blockscout network: " + network);
+            }
+            String rootUrl = baseUrl.replace("/api/v2/addresses", "");
+            
+            UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(rootUrl)
+                    .path("/api/v2/tokens")
+                    .queryParam("q", tokenSymbol);
+                    
+            if (type != null && !type.trim().isEmpty()) {
+                builder.queryParam("type", type);
+            }
+            String finalUrl = builder.toUriString();
+            logger.info("Requesting tokens from: {}", finalUrl);
+            HttpEntity<?> entity = buildJsonHeaders();
+            ResponseEntity<BlockscoutTokenListResponse> response = restTemplate.exchange(
+                    finalUrl,
+                    HttpMethod.GET,
+                    entity,
+                    BlockscoutTokenListResponse.class
+            );
+            return response.getBody();
+        } catch (HttpClientErrorException e) {
+            logger.error("Error from Blockscout API: {} - {}", e.getStatusCode(), e.getResponseBodyAsString());
+            throw new RuntimeException("Blockscout API error: " + e.getResponseBodyAsString(), e);
+        } catch (Exception e) {
+            logger.error("Error fetching tokens", e);
+            throw new RuntimeException("Failed to fetch tokens: " + e.getMessage(), e);
+        }
+    }
     private static final Logger logger = LoggerFactory.getLogger(BlockscoutProvider.class);
     
     private final AppProperties appProperties;

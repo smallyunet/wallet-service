@@ -2,6 +2,7 @@ package com.example.wallet.web;
 
 import com.example.wallet.domain.BalanceResponse;
 import com.example.wallet.domain.blockscout.BlockscoutTransactionResponse;
+import com.example.wallet.domain.eth.BlockscoutTokenListResponse;
 import com.example.wallet.domain.eth.EthTransferRequest;
 import com.example.wallet.domain.eth.EthTransferResponse;
 import com.example.wallet.domain.eth.GasFeeSuggestion;
@@ -19,6 +20,18 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/v1/eth/{network}")
 @Validated
 public class EthController {
+
+    /**
+     * Query ERC-20 and other token information
+     * Example: /v1/eth/sepolia/tokens?tokenSymbol=USDT&type=ERC-20,ERC-721,ERC-1155
+     */
+    @GetMapping("/tokens")
+    public ResponseEntity<BlockscoutTokenListResponse> getTokens(
+            @PathVariable String network,
+            @RequestParam(name = "tokenSymbol") String tokenSymbol,
+            @RequestParam(required = false) String type) {
+        return ResponseEntity.ok(blockscoutService.getTokens(network, tokenSymbol, type));
+    }
 
     private final BalanceService balanceService;
     private final BlockscoutService blockscoutService;
