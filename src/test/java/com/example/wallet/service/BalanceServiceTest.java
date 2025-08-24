@@ -128,4 +128,41 @@ public class BalanceServiceTest {
         // Verify results
         assertNotNull(result);
     }
+    
+    @Test
+    public void testGetTokenBalance() {
+        // Prepare test data
+        String network = "mainnet";
+        String tokenAddress = "0xTokenContractAddress";
+        String walletAddress = "0xWalletAddress";
+        
+        com.example.wallet.domain.eth.TokenBalanceResponse mockResponse = new com.example.wallet.domain.eth.TokenBalanceResponse();
+        mockResponse.setBalance("1000000000000000000");
+        mockResponse.setDecimals("18");
+        mockResponse.setSymbol("USDT");
+        mockResponse.setName("Tether USD");
+        mockResponse.setTokenAddress(tokenAddress);
+        mockResponse.setNetwork(network);
+        mockResponse.setWalletAddress(walletAddress);
+        
+        // Configure mock behavior
+        when(ethClient.getTokenBalance(eq(network), eq(tokenAddress), eq(walletAddress)))
+                .thenReturn(mockResponse);
+                
+        // Call service method
+        com.example.wallet.domain.eth.TokenBalanceResponse result = balanceService.getTokenBalance(network, tokenAddress, walletAddress);
+        
+        // Verify results
+        assertNotNull(result);
+        assertEquals("1000000000000000000", result.getBalance());
+        assertEquals("18", result.getDecimals());
+        assertEquals("USDT", result.getSymbol());
+        assertEquals("Tether USD", result.getName());
+        assertEquals(tokenAddress, result.getTokenAddress());
+        assertEquals(network, result.getNetwork());
+        assertEquals(walletAddress, result.getWalletAddress());
+        
+        // Verify calls
+        verify(ethClient).getTokenBalance(network, tokenAddress, walletAddress);
+    }
 }

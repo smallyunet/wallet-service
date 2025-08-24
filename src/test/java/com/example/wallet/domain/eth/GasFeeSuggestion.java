@@ -1,53 +1,111 @@
 package com.example.wallet.domain.eth;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
- * Gas fee suggestions for Ethereum transactions
+ * Represents the Ethereum gas fee suggestions
  */
 public class GasFeeSuggestion {
-    private String baseFee;     // Base fee (unit: Gwei)
+    @JsonProperty("slow")
+    private GasFeeDetail slow;
     
-    private String slowFee;     // Low priority fee (unit: Gwei) - Economic, may take longer to confirm
-    private String standardFee; // Standard priority fee (unit: Gwei) - Balances speed and cost
-    private String fastFee;     // High priority fee (unit: Gwei) - Faster confirmation
-    private String rapidFee;    // Express priority fee (unit: Gwei) - Fastest confirmation
-
+    @JsonProperty("average")
+    private GasFeeDetail average;
+    
+    @JsonProperty("fast")
+    private GasFeeDetail fast;
+    
+    @JsonProperty("fastest")
+    private GasFeeDetail fastest;
+    
+    @JsonProperty("base_fee")
+    private String baseFee;
+    
+    @JsonProperty("unit")
+    private String unit = "gwei";
+    
+    // Nested class to represent fee details at each priority level
+    public static class GasFeeDetail {
+        @JsonProperty("max_fee")
+        private String maxFee;
+        
+        @JsonProperty("max_priority_fee")
+        private String maxPriorityFee;
+        
+        @JsonProperty("estimated_seconds")
+        private Integer estimatedSeconds;
+        
+        public String getMaxFee() {
+            return maxFee;
+        }
+        
+        public void setMaxFee(String maxFee) {
+            this.maxFee = maxFee;
+        }
+        
+        public String getMaxPriorityFee() {
+            return maxPriorityFee;
+        }
+        
+        public void setMaxPriorityFee(String maxPriorityFee) {
+            this.maxPriorityFee = maxPriorityFee;
+        }
+        
+        public Integer getEstimatedSeconds() {
+            return estimatedSeconds;
+        }
+        
+        public void setEstimatedSeconds(Integer estimatedSeconds) {
+            this.estimatedSeconds = estimatedSeconds;
+        }
+    }
+    
+    // Getters and Setters
+    public GasFeeDetail getSlow() {
+        return slow;
+    }
+    
+    public void setSlow(GasFeeDetail slow) {
+        this.slow = slow;
+    }
+    
+    public GasFeeDetail getAverage() {
+        return average;
+    }
+    
+    public void setAverage(GasFeeDetail average) {
+        this.average = average;
+    }
+    
+    public GasFeeDetail getFast() {
+        return fast;
+    }
+    
+    public void setFast(GasFeeDetail fast) {
+        this.fast = fast;
+    }
+    
+    public GasFeeDetail getFastest() {
+        return fastest;
+    }
+    
+    public void setFastest(GasFeeDetail fastest) {
+        this.fastest = fastest;
+    }
+    
     public String getBaseFee() {
         return baseFee;
     }
-
+    
     public void setBaseFee(String baseFee) {
         this.baseFee = baseFee;
     }
-
-    public String getSlowFee() {
-        return slowFee;
+    
+    public String getUnit() {
+        return unit;
     }
-
-    public void setSlowFee(String slowFee) {
-        this.slowFee = slowFee;
-    }
-
-    public String getStandardFee() {
-        return standardFee;
-    }
-
-    public void setStandardFee(String standardFee) {
-        this.standardFee = standardFee;
-    }
-
-    public String getFastFee() {
-        return fastFee;
-    }
-
-    public void setFastFee(String fastFee) {
-        this.fastFee = fastFee;
-    }
-
-    public String getRapidFee() {
-        return rapidFee;
-    }
-
-    public void setRapidFee(String rapidFee) {
-        this.rapidFee = rapidFee;
+    
+    public void setUnit(String unit) {
+        this.unit = unit;
     }
 }
