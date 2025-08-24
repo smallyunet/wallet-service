@@ -15,6 +15,7 @@ import com.example.wallet.domain.eth.TokenTransferResponse;
 import com.example.wallet.domain.eth.TransactionStatusResponse;
 import com.example.wallet.service.BalanceService;
 import com.example.wallet.service.BlockscoutService;
+import com.example.wallet.service.TransactionService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import org.springframework.http.ResponseEntity;
@@ -55,10 +56,12 @@ public class EthController {
 
     private final BalanceService balanceService;
     private final BlockscoutService blockscoutService;
+    private final TransactionService transactionService;
 
-    public EthController(BalanceService balanceService, BlockscoutService blockscoutService) {
+    public EthController(BalanceService balanceService, BlockscoutService blockscoutService, TransactionService transactionService) {
         this.balanceService = balanceService;
         this.blockscoutService = blockscoutService;
+        this.transactionService = transactionService;
     }
     
     @GetMapping("/{address}/transactions")
@@ -108,7 +111,7 @@ public class EthController {
     public ResponseEntity<NonceResponse> getNonce(
             @PathVariable String network,
             @PathVariable @NotBlank String address) {
-        return ResponseEntity.ok(balanceService.getNonce(network, address));
+        return ResponseEntity.ok(transactionService.getNonce(network, address));
     }
     
     /**
@@ -117,7 +120,7 @@ public class EthController {
      */
     @GetMapping("/gas-fees")
     public ResponseEntity<GasFeeSuggestion> getGasFees(@PathVariable String network) {
-        return ResponseEntity.ok(balanceService.getGasFeeSuggestion(network));
+        return ResponseEntity.ok(transactionService.getGasFeeSuggestion(network));
     }
     
     /**
@@ -129,7 +132,7 @@ public class EthController {
     public ResponseEntity<EthTransferResponse> sendTransaction(
             @PathVariable String network,
             @RequestBody @Valid EthTransferRequest request) {
-        return ResponseEntity.ok(balanceService.sendEthTransaction(network, request));
+        return ResponseEntity.ok(transactionService.sendEthTransaction(network, request));
     }
     
     /**
@@ -141,7 +144,7 @@ public class EthController {
     public ResponseEntity<TokenTransferResponse> sendTokenTransaction(
             @PathVariable String network,
             @RequestBody @Valid TokenTransferRequest request) {
-        return ResponseEntity.ok(balanceService.sendTokenTransaction(network, request));
+        return ResponseEntity.ok(transactionService.sendTokenTransaction(network, request));
     }
 
     /**
@@ -152,7 +155,7 @@ public class EthController {
     public ResponseEntity<TransactionStatusResponse> getTransactionStatus(
             @PathVariable String network,
             @PathVariable @NotBlank String txHash) {
-        return ResponseEntity.ok(balanceService.getTransactionStatus(network, txHash));
+        return ResponseEntity.ok(transactionService.getTransactionStatus(network, txHash));
     }
 
     @GetMapping("/config/rpc")
