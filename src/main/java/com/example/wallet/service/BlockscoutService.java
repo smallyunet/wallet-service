@@ -1,6 +1,7 @@
 package com.example.wallet.service;
 
 import com.example.wallet.domain.blockscout.BlockscoutTransactionResponse;
+import com.example.wallet.domain.eth.BlockscoutTokenInfo;
 import com.example.wallet.domain.eth.BlockscoutTokenListResponse;
 import com.example.wallet.infra.eth.BlockscoutProvider;
 import org.springframework.stereotype.Service;
@@ -15,6 +16,16 @@ public class BlockscoutService {
      */
     public BlockscoutTokenListResponse getTokens(String network, String tokenSymbol, String type) {
         return blockscoutProvider.getTokens(network, tokenSymbol, type);
+    }
+    
+    /**
+     * Get detailed information about a specific token by its address
+     * @param network Network name (e.g. "sepolia")
+     * @param tokenAddress Token contract address (e.g. "0x84637EaB3d14d481E7242D124e5567B72213D7F2")
+     * @return Token details
+     */
+    public BlockscoutTokenInfo getTokenByAddress(String network, String tokenAddress) {
+        return blockscoutProvider.getTokenByAddress(network, tokenAddress);
     }
     private final BlockscoutProvider blockscoutProvider;
 

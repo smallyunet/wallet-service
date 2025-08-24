@@ -2,6 +2,7 @@ package com.example.wallet.web;
 
 import com.example.wallet.domain.BalanceResponse;
 import com.example.wallet.domain.blockscout.BlockscoutTransactionResponse;
+import com.example.wallet.domain.eth.BlockscoutTokenInfo;
 import com.example.wallet.domain.eth.BlockscoutTokenListResponse;
 import com.example.wallet.domain.eth.EthTransferRequest;
 import com.example.wallet.domain.eth.EthTransferResponse;
@@ -31,6 +32,21 @@ public class EthController {
             @RequestParam(name = "tokenSymbol") String tokenSymbol,
             @RequestParam(required = false) String type) {
         return ResponseEntity.ok(blockscoutService.getTokens(network, tokenSymbol, type));
+    }
+    
+    /**
+     * Get detailed information about a specific token by its address
+     * Example: /v1/eth/sepolia/tokens/0x84637EaB3d14d481E7242D124e5567B72213D7F2
+     * 
+     * @param network Network name (e.g. "sepolia")
+     * @param tokenAddress Token contract address
+     * @return Token details
+     */
+    @GetMapping("/tokens/{tokenAddress}")
+    public ResponseEntity<BlockscoutTokenInfo> getTokenByAddress(
+            @PathVariable String network,
+            @PathVariable @NotBlank String tokenAddress) {
+        return ResponseEntity.ok(blockscoutService.getTokenByAddress(network, tokenAddress));
     }
 
     private final BalanceService balanceService;

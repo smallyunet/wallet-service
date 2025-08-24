@@ -2,6 +2,7 @@ package com.example.wallet.infra.eth;
 
 import com.example.wallet.config.AppProperties;
 import com.example.wallet.domain.blockscout.BlockscoutTransactionResponse;
+import com.example.wallet.domain.eth.BlockscoutTokenInfo;
 import com.example.wallet.domain.eth.BlockscoutTokenListResponse;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpEntity;
@@ -53,6 +54,40 @@ public class BlockscoutProvider {
         } catch (Exception e) {
             logger.error("Error fetching tokens", e);
             throw new RuntimeException("Failed to fetch tokens: " + e.getMessage(), e);
+        }
+    }
+    
+    /**
+     * Get detailed information about a specific token by its address
+     * @param network Network name (e.g. "sepolia")
+     * @param tokenAddress Token contract address (e.g. "0x84637EaB3d14d481E7242D124e5567B72213D7F2")
+     * @return Token details
+     */
+    public BlockscoutTokenInfo getTokenByAddress(String network, String tokenAddress) {
+        try {
+            String baseUrl = appProperties.getBlockscout().get("eth").get(network);
+            if (baseUrl == null) {
+                throw new IllegalArgumentException("Unsupported blockscout network: " + network);
+            }
+            String rootUrl = baseUrl.replace("/api/v2/addresses", "");
+            
+            String url = rootUrl + "/api/v2/tokens/" + tokenAddress;
+            logger.info("Requesting token details from: {}", url);
+            
+            HttpEntity<?> entity = buildJsonHeaders();
+            ResponseEntity<BlockscoutTokenInfo> response = restTemplate.exchange(
+                    url,
+                    HttpMethod.GET,
+                    entity,
+                    BlockscoutTokenInfo.class
+            );
+            return response.getBody();
+        } catch (HttpClientErrorException e) {
+            logger.error("Error from Blockscout API: {} - {}", e.getStatusCode(), e.getResponseBodyAsString());
+            throw new RuntimeException("Blockscout API error: " + e.getResponseBodyAsString(), e);
+        } catch (Exception e) {
+            logger.error("Error fetching token details", e);
+            throw new RuntimeException("Failed to fetch token details: " + e.getMessage(), e);
         }
     }
     private static final Logger logger = LoggerFactory.getLogger(BlockscoutProvider.class);
