@@ -1,10 +1,14 @@
 # ===== Build stage =====
 FROM maven:3.9-eclipse-temurin-21 AS build
 WORKDIR /app
+
+# Accept build arguments
+ARG MAVEN_OPTS="-Dmaven.test.skip=true"
+
 COPY pom.xml .
-RUN mvn -q -e -DskipTests dependency:go-offline
+RUN mvn -q -e dependency:go-offline
 COPY src ./src
-RUN mvn -q -DskipTests package
+RUN mvn -q ${MAVEN_OPTS} package
 
 # ===== Run stage =====
 FROM eclipse-temurin:21-jre-jammy
@@ -30,4 +34,4 @@ EXPOSE 8080
 
 HEALTHCHECK --interval=30s --timeout=3s --start-period=20s   CMD curl -fs http://localhost:8080/actuator/health || exit 1
 
-ENTRYPOINT ["java","-XX:+UseZGC","-Xms256m","-Xmx512m","-jar","app.jar"]
+ENTRYPOINT ["sh", "-c", "java ${JAVA_OPTS} -jar app.jar"]

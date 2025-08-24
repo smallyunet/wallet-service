@@ -1,0 +1,33 @@
+services:
+  wallet-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        MAVEN_OPTS: "-Dmaven.test.skip=true"
+    container_name: wallet-server
+    ports:
+      - "8080:8080"
+    volumes:
+      # Map logs directory to host machine
+      - ./logs:/opt/app/logs
+      # Map configuration files directory (read-only)
+      - ./src/main/resources:/config:ro
+    environment:
+      # Application environment variables
+      - SPRING_PROFILES_ACTIVE=default
+      - JAVA_OPTS=-XX:+UseZGC -Xms256m -Xmx512m
+      - SPRING_CONFIG_LOCATION=file:/config/
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 20s
+    networks:
+      - wallet-network
+
+networks:
+  wallet-network:
+    driver: bridge
