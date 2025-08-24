@@ -4,6 +4,8 @@ import com.example.wallet.config.AppProperties;
 import com.example.wallet.domain.eth.EthTransferRequest;
 import com.example.wallet.domain.eth.EthTransferResponse;
 import com.example.wallet.domain.eth.GasFeeSuggestion;
+import com.example.wallet.domain.eth.TokenTransferRequest;
+import com.example.wallet.domain.eth.TokenTransferResponse;
 import com.example.wallet.domain.eth.TransactionStatusResponse;
 import org.springframework.stereotype.Component;
 import org.web3j.protocol.Web3j;
@@ -271,6 +273,13 @@ public class EthClient {
                 hexValue = "0x" + hexValue;
             }
             
+            // Check if this is a transaction hash (32 bytes) instead of a signed transaction
+            if (hexValue.length() == 66) { // 0x + 64 hex chars for 32 bytes
+                response.setStatus("failed");
+                response.setError("Provided value appears to be a transaction hash, not a signed transaction. A signed transaction is much longer and contains the complete transaction data.");
+                return response;
+            }
+            
             // Store request metadata in response if available
             if (request.getFrom() != null) {
                 response.setFrom(request.getFrom());
@@ -350,6 +359,117 @@ public class EthClient {
      * @param txHash the transaction hash
      * @return transaction status and receipt details
      */
+    /**
+     * Send an already signed token (ERC-20) transaction
+     * This method accepts a transaction that was already signed by the client app
+     * 
+     * @param network the Ethereum network to use
+     * @param request the token transfer request with signed transaction data
+     * @return response with transaction details
+     */
+    public TokenTransferResponse sendTokenTransaction(String network, TokenTransferRequest request) {
+        String rpcUrl = appProperties.getRpc().getEth().get(network);
+        if (rpcUrl == null) {
+            throw new IllegalArgumentException("Unsupported ETH network: " + network);
+        }
+        
+        Web3j web3j = Web3j.build(new HttpService(rpcUrl));
+        TokenTransferResponse response = new TokenTransferResponse();
+        
+        try {
+            // Get the signed transaction hex value from the request
+            String hexValue = request.getSignedTransaction();
+            
+            // Validate the hex value
+            if (!hexValue.startsWith("0x")) {
+                hexValue = "0x" + hexValue;
+            }
+            
+            // Check if this is a transaction hash (32 bytes) instead of a signed transaction
+            if (hexValue.length() == 66) { // 0x + 64 hex chars for 32 bytes
+                response.setStatus("failed");
+                response.setError("Provided value appears to be a transaction hash, not a signed transaction. A signed transaction is much longer and contains the complete transaction data.");
+                return response;
+            }
+            
+            // Store request metadata in response if available
+            if (request.getFrom() != null) {
+                response.setFrom(request.getFrom());
+            }
+            if (request.getTo() != null) {
+                response.setTo(request.getTo());
+            }
+            if (request.getTokenAddress() != null) {
+                response.setTokenAddress(request.getTokenAddress());
+            }
+            if (request.getValue() != null) {
+                response.setValue(request.getValue());
+            }
+            if (request.getTokenSymbol() != null) {
+                response.setTokenSymbol(request.getTokenSymbol());
+            }
+            
+            // Send transaction
+            EthSendTransaction ethSendTransaction = web3j.ethSendRawTransaction(hexValue).send();
+            
+            if (ethSendTransaction.hasError()) {
+                response.setStatus("failed");
+                response.setError(ethSendTransaction.getError().getMessage());
+                return response;
+            }
+            
+            String transactionHash = ethSendTransaction.getTransactionHash();
+            
+            // Set transaction hash in response
+            response.setTransactionHash(transactionHash);
+            response.setStatus("pending");
+            
+            // Wait for transaction receipt if needed
+            // Note: In production, this should be done asynchronously
+            EthGetTransactionReceipt transactionReceipt = web3j
+                .ethGetTransactionReceipt(transactionHash)
+                .send();
+            
+            if (transactionReceipt.getTransactionReceipt().isPresent()) {
+                TransactionReceipt receipt = transactionReceipt.getTransactionReceipt().get();
+                
+                // If transaction info not provided in request, get it from receipt
+                if (response.getFrom() == null) {
+                    response.setFrom(receipt.getFrom());
+                }
+                if (response.getTo() == null) {
+                    response.setTo(receipt.getTo());
+                }
+                
+                response.setBlockHash(receipt.getBlockHash());
+                response.setBlockNumber(receipt.getBlockNumber().toString());
+                response.setGasUsed(receipt.getGasUsed().toString());
+                
+                // Check transaction status (only for post-Byzantium)
+                if (receipt.getStatus() != null) {
+                    boolean success = receipt.isStatusOK();
+                    response.setStatus(success ? "confirmed" : "failed");
+                    if (!success) {
+                        response.setError("Transaction execution failed");
+                    }
+                }
+            }
+            
+            return response;
+            
+        } catch (IOException e) {
+            logger.error("Failed to send token transaction: {}", e.getMessage(), e);
+            response.setStatus("failed");
+            response.setError("Transaction failed: " + e.getMessage());
+            return response;
+        } catch (Exception e) {
+            logger.error("Unexpected error: {}", e.getMessage(), e);
+            response.setStatus("failed");
+            response.setError("Unexpected error: " + e.getMessage());
+            return response;
+        }
+    }
+    
     public TransactionStatusResponse getTransactionStatus(String network, String txHash) {
         String rpcUrl = appProperties.getRpc().getEth().get(network);
         if (rpcUrl == null) {

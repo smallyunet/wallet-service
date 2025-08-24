@@ -10,6 +10,8 @@ import com.example.wallet.domain.eth.GasFeeSuggestion;
 import com.example.wallet.domain.eth.NonceResponse;
 import com.example.wallet.domain.eth.TokenBalanceResponse;
 import com.example.wallet.domain.eth.TokenTransferListResponse;
+import com.example.wallet.domain.eth.TokenTransferRequest;
+import com.example.wallet.domain.eth.TokenTransferResponse;
 import com.example.wallet.domain.eth.TransactionStatusResponse;
 import com.example.wallet.service.BalanceService;
 import com.example.wallet.service.BlockscoutService;
@@ -128,6 +130,18 @@ public class EthController {
             @PathVariable String network,
             @RequestBody @Valid EthTransferRequest request) {
         return ResponseEntity.ok(balanceService.sendEthTransaction(network, request));
+    }
+    
+    /**
+     * Send an ERC-20 token transfer transaction
+     * This endpoint broadcasts a signed token transfer transaction to the network
+     * The transaction must be signed by the client before sending
+     */
+    @PostMapping("/token-transfer")
+    public ResponseEntity<TokenTransferResponse> sendTokenTransaction(
+            @PathVariable String network,
+            @RequestBody @Valid TokenTransferRequest request) {
+        return ResponseEntity.ok(balanceService.sendTokenTransaction(network, request));
     }
 
     /**
