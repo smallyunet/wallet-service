@@ -17,3 +17,8 @@ app:
       testnet: "https://blockstream.info/testnet/api"
   security:
     allowOrigins: "*"
+
+  auth:
+    enabled: false # Authentication switch, disabled by default
+    androidKey: "android-demo-key"
+    iosKey: "ios-demo-key"
