@@ -4,6 +4,8 @@ import com.example.wallet.config.IAppProperties;
 import com.example.wallet.domain.eth.EthTransferRequest;
 import com.example.wallet.domain.eth.EthTransferResponse;
 import com.example.wallet.domain.eth.GasFeeSuggestion;
+import com.example.wallet.domain.eth.NonceResponse;
+import com.example.wallet.domain.eth.TokenBalanceResponse;
 import com.example.wallet.domain.eth.TokenTransferRequest;
 import com.example.wallet.domain.eth.TokenTransferResponse;
 import com.example.wallet.domain.eth.TransactionStatusResponse;
@@ -35,7 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Component
-public class EthClient {
+public class EthClient implements IEthClient {
     private static final Logger logger = LoggerFactory.getLogger(EthClient.class);
     private static final BigInteger DEFAULT_GAS_LIMIT = BigInteger.valueOf(21000); // Standard ETH transfer
     private final IAppProperties appProperties;
@@ -65,7 +67,8 @@ public class EthClient {
      * @param address the address to query
      * @return the current nonce as a hex string with 0x prefix
      */
-    public String getNonce(String network, String address) {
+    @Override
+    public NonceResponse getNonce(String network, String address) {
         String rpcUrl = appProperties.getRpc().getEth().get(network);
         if (rpcUrl == null) {
             throw new IllegalArgumentException("Unsupported ETH network: " + network);
@@ -76,7 +79,8 @@ public class EthClient {
                 .ethGetTransactionCount(address, DefaultBlockParameterName.LATEST)
                 .send();
             
-            return "0x" + ethGetTransactionCount.getTransactionCount().toString(16);
+            String nonce = "0x" + ethGetTransactionCount.getTransactionCount().toString(16);
+            return new NonceResponse(network, address, nonce);
         } catch (IOException e) {
             logger.error("Failed to fetch nonce for address {}: {}", address, e.getMessage(), e);
             throw new RuntimeException("Failed to fetch nonce: " + e.getMessage(), e);
@@ -185,10 +189,16 @@ public class EthClient {
         }
     }
     
+    @Override
+    public GasFeeSuggestion getGasFees(String network) {
+        return getGasFeeSuggestion(network);
+    }
+
     /**
      * Get gas fee suggestions for transactions
      * This method combines on-chain data with estimated confirmation times
      */
+    @Override
     public GasFeeSuggestion getGasFeeSuggestion(String network) {
         String rpcUrl = appProperties.getRpc().getEth().get(network);
         if (rpcUrl == null) {
@@ -575,5 +585,15 @@ public class EthClient {
             response.setError("Unexpected error: " + e.getMessage());
             return response;
         }
+    }
+    
+    @Override
+    public EthTransferResponse sendTransaction(String network, String privateKey, String toAddress, String amount, String gasPrice, String gasLimit) {
+        throw new UnsupportedOperationException("Method not implemented yet");
+    }
+
+    @Override
+    public TokenTransferResponse sendTokenTransaction(String network, String privateKey, String contractAddress, String toAddress, String amount, String gasPrice, String gasLimit) {
+        throw new UnsupportedOperationException("Method not implemented yet");
     }
 }

@@ -17,7 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Component
-public class BlockscoutProvider {
+public class BlockscoutProvider implements IBlockscoutProvider {
     /**
      * Query ERC-20 and other token information
      * @param network Network name (e.g. "sepolia")

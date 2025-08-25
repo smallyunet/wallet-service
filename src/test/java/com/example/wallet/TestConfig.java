@@ -18,7 +18,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 
 /**
- * 测试配置类，提供测试所需的Bean模拟实现
+ * Test configuration class, providing mock implementations of beans required for testing
  */
 @TestConfiguration
 public class TestConfig {
@@ -82,7 +82,7 @@ public class TestConfig {
     @Bean
     @Primary
     public IBtcClient btcClient() {
-        // 返回一个简单的模拟实现
+        // Return a simple mock implementation
         return new IBtcClient() {
             @Override
             public String getBalance(String network, String address) {
@@ -96,7 +96,7 @@ public class TestConfig {
             
             @Override
             public String getUtxos(String network, String address) {
-                return "[]"; // 返回一个空的UTXO列表
+                return "[]"; // Return an empty UTXO list
             }
         };
     }

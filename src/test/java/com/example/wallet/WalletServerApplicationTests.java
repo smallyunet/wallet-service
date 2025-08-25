@@ -4,15 +4,15 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
- * 简单的单元测试，验证应用类是否可以正常实例化
- * 不依赖于Spring上下文加载
+ * Simple unit test to verify that the application class can be instantiated normally
+ * Does not depend on Spring context loading
  */
 class WalletServerApplicationTests {
     
     @Test
     void applicationClassCanBeInstantiated() {
-        // 测试应用的主类是否可以正常实例化
+        // Test if the main application class can be instantiated normally
         WalletServerApplication application = new WalletServerApplication();
-        assertNotNull(application, "应用类应该能够正常实例化");
+        assertNotNull(application, "Application class should be instantiated properly");
     }
 }

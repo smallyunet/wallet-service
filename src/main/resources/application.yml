@@ -15,6 +15,9 @@ app:
     btc:
       mainnet: "https://blockstream.info/api"
       testnet: "https://blockstream.info/testnet/api"
+      esplora-testnet: "https://mempool.space/testnet/api"
+      blockcypher-testnet: "https://api.blockcypher.com/v1/btc/test3"
+      blockchain-testnet: "https://testnet.blockchain.info"
   security:
     allowOrigins: "*"
 

@@ -24,6 +24,13 @@ public class BalanceService {
         return new BalanceResponse("ETH", network, address, wei);
     }
 
+    /**
+     * Get Bitcoin balance for an address
+     *
+     * @param network Bitcoin network (mainnet, testnet)
+     * @param address Bitcoin address
+     * @return Balance response with Bitcoin amount in satoshis
+     */
     public BalanceResponse btcBalance(String network, String address) {
         String sats = btcClient.getBalance(network, address);
         return new BalanceResponse("BTC", network, address, sats);
