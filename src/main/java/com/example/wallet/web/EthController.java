@@ -4,6 +4,7 @@ import com.example.wallet.domain.BalanceResponse;
 import com.example.wallet.domain.blockscout.BlockscoutTransactionResponse;
 import com.example.wallet.domain.eth.BlockscoutTokenInfo;
 import com.example.wallet.domain.eth.BlockscoutTokenListResponse;
+import com.example.wallet.domain.eth.ChainIdResponse;
 import com.example.wallet.domain.eth.EthTransferRequest;
 import com.example.wallet.domain.eth.EthTransferResponse;
 import com.example.wallet.domain.eth.GasFeeSuggestion;
@@ -65,6 +66,21 @@ public class EthController {
         this.balanceService = balanceService;
         this.blockscoutService = blockscoutService;
         this.transactionService = transactionService;
+    }
+    
+    /**
+     * Get the chain ID for the specified Ethereum network
+     * Example: /v1/eth/sepolia/chainId
+     * Response format: {"chainid": 11155111}
+     *
+     * @param network Network name (e.g. "mainnet", "sepolia")
+     * @return JSON object containing the chain ID
+     */
+    @GetMapping("/chainId")
+    public ResponseEntity<ChainIdResponse> getChainId(@PathVariable @NotBlank String network) {
+        logger.info("Getting chain ID for network: {}", network);
+        long chainId = transactionService.getChainId(network);
+        return ResponseEntity.ok(new ChainIdResponse(chainId));
     }
     
     @GetMapping("/{address}/transactions")

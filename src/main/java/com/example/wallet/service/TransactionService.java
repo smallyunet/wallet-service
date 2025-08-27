@@ -50,6 +50,16 @@ public class TransactionService {
     }
     
     /**
+     * Get the chain ID for the specified Ethereum network
+     * 
+     * @param network the Ethereum network name (e.g., "mainnet", "sepolia")
+     * @return the chain ID as a long value
+     */
+    public long getChainId(String network) {
+        return ethClient.getChainId(network);
+    }
+    
+    /**
      * Get transaction status and receipt by transaction hash
      *
      * @param network the Ethereum network name

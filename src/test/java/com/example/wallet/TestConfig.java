@@ -48,6 +48,19 @@ public class TestConfig {
             }
             
             @Override
+            public long getChainId(String network) {
+                // Return mock chain IDs for testing
+                switch (network) {
+                    case "mainnet":
+                        return 1L;
+                    case "sepolia":
+                        return 11155111L;
+                    default:
+                        return 1L; // Default to mainnet
+                }
+            }
+            
+            @Override
             public GasFeeSuggestion getGasFeeSuggestion(String network) {
                 return new GasFeeSuggestion();
             }

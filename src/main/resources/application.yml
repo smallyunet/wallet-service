@@ -10,7 +10,7 @@ app:
       sepolia: "https://eth-sepolia.blockscout.com/api/v2/addresses"
   rpc:
     eth:
-      mainnet: "https://eth-mainnet.example"
+      mainnet: "https://ethereum-rpc.publicnode.com"
       sepolia: "https://ethereum-sepolia-rpc.publicnode.com"
     btc:
       mainnet: "https://blockstream.info/api"

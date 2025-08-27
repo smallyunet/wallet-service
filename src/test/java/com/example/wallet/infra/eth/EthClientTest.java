@@ -10,6 +10,7 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.Request;
+import org.web3j.protocol.core.methods.response.EthChainId;
 import org.web3j.protocol.core.methods.response.EthGasPrice;
 
 import java.io.IOException;
@@ -192,6 +193,93 @@ public class EthClientTest {
         });
         
         assertEquals("Unsupported ETH network: unknown-network", exception.getMessage());
+    }
+    
+    /**
+     * Test getting chain ID for Ethereum mainnet
+     */
+    @SuppressWarnings({"rawtypes", "unchecked"}) // Suppress raw type warnings
+    @Test
+    public void testGetChainId_Mainnet() throws IOException {
+        // Setup mock response for chain ID (Ethereum mainnet = 1)
+        EthChainId mockChainId = mock(EthChainId.class);
+        when(mockChainId.getChainId()).thenReturn(BigInteger.valueOf(1L));
+        when(mockChainId.hasError()).thenReturn(false);
+        
+        Request mockRequest = mock(Request.class);
+        when(mockRequest.send()).thenReturn(mockChainId);
+        doReturn(mockRequest).when(web3j).ethChainId();
+        
+        // Call the method
+        long chainId = ethClient.getChainId("mainnet");
+        
+        // Verify the result
+        assertEquals(1L, chainId);
+    }
+    
+    /**
+     * Test getting chain ID for Ethereum Sepolia testnet
+     */
+    @SuppressWarnings({"rawtypes", "unchecked"}) // Suppress raw type warnings
+    @Test
+    public void testGetChainId_Sepolia() throws IOException {
+        // Setup mock response for chain ID (Sepolia = 11155111)
+        EthChainId mockChainId = mock(EthChainId.class);
+        when(mockChainId.getChainId()).thenReturn(BigInteger.valueOf(11155111L));
+        when(mockChainId.hasError()).thenReturn(false);
+        
+        Request mockRequest = mock(Request.class);
+        when(mockRequest.send()).thenReturn(mockChainId);
+        doReturn(mockRequest).when(web3j).ethChainId();
+        
+        // Call the method
+        long chainId = ethClient.getChainId("sepolia");
+        
+        // Verify the result
+        assertEquals(11155111L, chainId);
+    }
+    
+    /**
+     * Test error handling when network is not found
+     */
+    @Test
+    public void testGetChainId_UnsupportedNetwork() {
+        // Setup app properties to throw exception for unknown network
+        when(rpc.getEth().get("unknown-network")).thenReturn(null);
+        
+        // Call with unsupported network
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            ethClient.getChainId("unknown-network");
+        });
+        
+        // Verify the exception message
+        assertTrue(exception.getMessage().contains("Network unknown-network is not configured"));
+    }
+    
+    /**
+     * Test error handling when RPC call fails
+     */
+    @SuppressWarnings({"rawtypes", "unchecked"}) // Suppress raw type warnings
+    @Test
+    public void testGetChainId_RpcError() throws IOException {
+        // Setup mock response for chain ID with error
+        EthChainId mockChainId = mock(EthChainId.class);
+        when(mockChainId.hasError()).thenReturn(true);
+        org.web3j.protocol.core.Response.Error mockError = new org.web3j.protocol.core.Response.Error();
+        mockError.setMessage("RPC connection failed");
+        when(mockChainId.getError()).thenReturn(mockError);
+        
+        Request mockRequest = mock(Request.class);
+        when(mockRequest.send()).thenReturn(mockChainId);
+        doReturn(mockRequest).when(web3j).ethChainId();
+        
+        // Call with network that will cause RPC error
+        Exception exception = assertThrows(IOException.class, () -> {
+            ethClient.getChainId("mainnet");
+        });
+        
+        // Verify the exception message
+        assertTrue(exception.getMessage().contains("Error fetching chain ID"));
     }
     
     // Helper method to setup mock gas price response

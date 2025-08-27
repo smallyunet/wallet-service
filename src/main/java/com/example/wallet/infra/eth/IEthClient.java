@@ -20,4 +20,10 @@ public interface IEthClient {
     TokenTransferResponse sendTokenTransaction(String network, TokenTransferRequest request);
     TokenTransferResponse sendTokenTransaction(String network, String privateKey, String contractAddress, String toAddress, String amount, String gasPrice, String gasLimit);
     TransactionStatusResponse getTransactionStatus(String network, String txHash);
+    /**
+     * Get the chain ID for the specified Ethereum network
+     * @param network The network name (e.g., "mainnet", "sepolia")
+     * @return The chain ID as a long value
+     */
+    long getChainId(String network);
 }

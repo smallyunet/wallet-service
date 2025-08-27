@@ -628,4 +628,37 @@ public class EthClient implements IEthClient {
     public TokenTransferResponse sendTokenTransaction(String network, String privateKey, String contractAddress, String toAddress, String amount, String gasPrice, String gasLimit) {
         throw new UnsupportedOperationException("Method not implemented yet");
     }
+    
+    /**
+     * Get the chain ID for the specified Ethereum network
+     * 
+     * @param network The network name (e.g., "mainnet", "sepolia")
+     * @return The chain ID as a long value
+     */
+    @Override
+    public long getChainId(String network) {
+        try {
+            // Get the RPC URL for the specified network
+            String rpcUrl = appProperties.getRpc().getEth().get(network);
+            if (rpcUrl == null) {
+                logger.error("Network {} is not configured", network);
+                throw new IllegalArgumentException("Network " + network + " is not configured");
+            }
+            
+            // Create a Web3j instance for the RPC URL
+            Web3j web3j = createWeb3j(rpcUrl);
+            
+            // Get the chain ID from the network
+            EthChainId chainIdResponse = web3j.ethChainId().send();
+            if (chainIdResponse.hasError()) {
+                logger.error("Error fetching chain ID: {}", chainIdResponse.getError().getMessage());
+                throw new IOException("Error fetching chain ID: " + chainIdResponse.getError().getMessage());
+            }
+            
+            return chainIdResponse.getChainId().longValue();
+        } catch (IOException e) {
+            logger.error("Failed to get chain ID for network {}: {}", network, e.getMessage(), e);
+            throw new RuntimeException("Failed to get chain ID for network " + network, e);
+        }
+    }
 }
