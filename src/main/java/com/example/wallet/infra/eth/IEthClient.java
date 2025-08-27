@@ -1,5 +1,8 @@
 package com.example.wallet.infra.eth;
 
+import java.io.IOException;
+import java.util.Map;
+
 import com.example.wallet.domain.eth.EthTransferRequest;
 import com.example.wallet.domain.eth.EthTransferResponse;
 import com.example.wallet.domain.eth.GasFeeSuggestion;
@@ -24,6 +27,7 @@ public interface IEthClient {
      * Get the chain ID for the specified Ethereum network
      * @param network The network name (e.g., "mainnet", "sepolia")
      * @return The chain ID as a long value
+     * @throws IOException If there's an error communicating with the Ethereum node
      */
-    long getChainId(String network);
+    long getChainId(String network) throws IOException;
 }

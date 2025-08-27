@@ -1,5 +1,7 @@
 package com.example.wallet.infra.eth;
 
+import java.util.Map;
+
 import com.example.wallet.config.IAppProperties;
 import com.example.wallet.domain.eth.EthTransferRequest;
 import com.example.wallet.domain.eth.EthTransferResponse;
@@ -636,10 +638,16 @@ public class EthClient implements IEthClient {
      * @return The chain ID as a long value
      */
     @Override
-    public long getChainId(String network) {
+    public long getChainId(String network) throws IOException {
         try {
             // Get the RPC URL for the specified network
-            String rpcUrl = appProperties.getRpc().getEth().get(network);
+            Map<String, String> ethRpcMap = appProperties.getRpc().getEth();
+            if (ethRpcMap == null) {
+                logger.error("No ETH RPC configurations found");
+                throw new IllegalArgumentException("No ETH RPC configurations found");
+            }
+            
+            String rpcUrl = ethRpcMap.get(network);
             if (rpcUrl == null) {
                 logger.error("Network {} is not configured", network);
                 throw new IllegalArgumentException("Network " + network + " is not configured");
@@ -658,7 +666,7 @@ public class EthClient implements IEthClient {
             return chainIdResponse.getChainId().longValue();
         } catch (IOException e) {
             logger.error("Failed to get chain ID for network {}: {}", network, e.getMessage(), e);
-            throw new RuntimeException("Failed to get chain ID for network " + network, e);
+            throw e; // Re-throw the original IOException instead of wrapping it
         }
     }
 }

@@ -245,15 +245,23 @@ public class EthClientTest {
     @Test
     public void testGetChainId_UnsupportedNetwork() {
         // Setup app properties to throw exception for unknown network
-        when(rpc.getEth().get("unknown-network")).thenReturn(null);
+        Map<String, String> ethNetworks = new HashMap<>();
+        ethNetworks.put("mainnet", "https://eth-mainnet.example.com");
+        ethNetworks.put("sepolia", "https://eth-sepolia.example.com");
+        // Make sure unknown-network is not in the map
+        when(rpc.getEth()).thenReturn(ethNetworks);
         
         // Call with unsupported network
         Exception exception = assertThrows(IllegalArgumentException.class, () -> {
             ethClient.getChainId("unknown-network");
         });
         
+        // For debugging, print the actual message
+        System.out.println("Actual exception message: " + exception.getMessage());
+        
         // Verify the exception message
-        assertTrue(exception.getMessage().contains("Network unknown-network is not configured"));
+        assertTrue(exception.getMessage().contains("Network unknown-network is not configured"),
+                "Expected message to contain 'Network unknown-network is not configured' but was: " + exception.getMessage());
     }
     
     /**

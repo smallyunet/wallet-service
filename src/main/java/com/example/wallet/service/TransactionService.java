@@ -1,5 +1,7 @@
 package com.example.wallet.service;
 
+import java.io.IOException;
+
 import com.example.wallet.domain.eth.EthTransferRequest;
 import com.example.wallet.domain.eth.EthTransferResponse;
 import com.example.wallet.domain.eth.GasFeeSuggestion;
@@ -54,9 +56,14 @@ public class TransactionService {
      * 
      * @param network the Ethereum network name (e.g., "mainnet", "sepolia")
      * @return the chain ID as a long value
+     * @throws RuntimeException if there's an issue communicating with the Ethereum node
      */
     public long getChainId(String network) {
-        return ethClient.getChainId(network);
+        try {
+            return ethClient.getChainId(network);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to get chain ID for network: " + network, e);
+        }
     }
     
     /**
