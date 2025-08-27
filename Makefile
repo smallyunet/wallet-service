@@ -26,7 +26,7 @@ build-run: build run
 # Run tests
 .PHONY: test
 test:
-	mvn test
+	mvn test -Pjava24-compatibility
 
 # Help target to show available commands
 .PHONY: help

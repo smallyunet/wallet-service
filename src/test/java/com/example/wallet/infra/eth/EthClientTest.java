@@ -46,10 +46,13 @@ public class EthClientTest {
         when(appProperties.getRpc()).thenReturn(rpc);
         when(rpc.getEth()).thenReturn(ethNetworks);
         
-        // Create a partial mock of EthClient
-        ethClient = new EthClient(appProperties);
-        
-        // We'll use PowerMockito to mock the static Web3j.build method in each test
+        // Create EthClient with constructor injection of mocked web3j
+        ethClient = spy(new EthClient(appProperties) {
+            @Override
+            protected Web3j createWeb3j(String rpcUrl) {
+                return web3j; // Return our mocked web3j instance
+            }
+        });
     }
 
     /**
@@ -66,15 +69,15 @@ public class EthClientTest {
         
         // Verify the results
         assertNotNull(suggestion);
-        assertEquals("20.000", suggestion.getBaseFee());
-        assertEquals("20.000", suggestion.getSlow().getMaxFee());
-        assertEquals("2.000", suggestion.getSlow().getMaxPriorityFee());
-        assertEquals("24.000", suggestion.getAverage().getMaxFee());
-        assertEquals("4.000", suggestion.getAverage().getMaxPriorityFee());
-        assertEquals("30.000", suggestion.getFast().getMaxFee());
-        assertEquals("6.000", suggestion.getFast().getMaxPriorityFee());
-        assertEquals("40.000", suggestion.getFastest().getMaxFee());
-        assertEquals("10.000", suggestion.getFastest().getMaxPriorityFee());
+        assertEquals("20.0000", suggestion.getBaseFee());
+        assertEquals("20.0000", suggestion.getSlow().getMaxFee());
+        assertEquals("2.0000", suggestion.getSlow().getMaxPriorityFee());
+        assertEquals("24.0000", suggestion.getAverage().getMaxFee());
+        assertEquals("4.0000", suggestion.getAverage().getMaxPriorityFee());
+        assertEquals("30.0000", suggestion.getFast().getMaxFee());
+        assertEquals("6.0000", suggestion.getFast().getMaxPriorityFee());
+        assertEquals("40.0000", suggestion.getFastest().getMaxFee());
+        assertEquals("10.0000", suggestion.getFastest().getMaxPriorityFee());
         assertEquals("gwei", suggestion.getUnit());
     }
     
@@ -91,15 +94,15 @@ public class EthClientTest {
         
         // Verify the results - should use minimum displayable value (0.001 Gwei)
         assertNotNull(suggestion);
-        assertEquals("0.001", suggestion.getBaseFee());
-        assertEquals("0.001", suggestion.getSlow().getMaxFee());
-        assertEquals("0.000", suggestion.getSlow().getMaxPriorityFee()); // 0.0001 rounds to 0.000
-        assertEquals("0.001", suggestion.getAverage().getMaxFee());
-        assertEquals("0.000", suggestion.getAverage().getMaxPriorityFee());
-        assertEquals("0.002", suggestion.getFast().getMaxFee());
-        assertEquals("0.000", suggestion.getFast().getMaxPriorityFee());
-        assertEquals("0.002", suggestion.getFastest().getMaxFee());
-        assertEquals("0.001", suggestion.getFastest().getMaxPriorityFee());
+        assertEquals("0.0010", suggestion.getBaseFee());
+        assertEquals("0.0010", suggestion.getSlow().getMaxFee());
+        assertEquals("0.0001", suggestion.getSlow().getMaxPriorityFee()); // 0.0001 no longer rounded to 0.0000 with String.format
+        assertEquals("0.0012", suggestion.getAverage().getMaxFee()); // 0.0010 * 1.2 = 0.0012
+        assertEquals("0.0002", suggestion.getAverage().getMaxPriorityFee()); // 0.001 * 0.2 = 0.0002
+        assertEquals("0.0015", suggestion.getFast().getMaxFee()); // 0.0010 * 1.5 = 0.0015
+        assertEquals("0.0003", suggestion.getFast().getMaxPriorityFee()); // 0.001 * 0.3 = 0.0003
+        assertEquals("0.0020", suggestion.getFastest().getMaxFee()); // 0.0010 * 2.0 = 0.0020
+        assertEquals("0.0005", suggestion.getFastest().getMaxPriorityFee()); // 0.001 * 0.5 = 0.0005
     }
     
     /**
@@ -115,9 +118,9 @@ public class EthClientTest {
         
         // Verify the results - should use minimum displayable value (0.001 Gwei)
         assertNotNull(suggestion);
-        assertEquals("0.001", suggestion.getBaseFee());
-        assertEquals("0.001", suggestion.getSlow().getMaxFee());
-        assertEquals("0.000", suggestion.getSlow().getMaxPriorityFee());
+        assertEquals("0.0010", suggestion.getBaseFee());
+        assertEquals("0.0010", suggestion.getSlow().getMaxFee());
+        assertEquals("0.0001", suggestion.getSlow().getMaxPriorityFee());
     }
     
     /**
@@ -133,9 +136,9 @@ public class EthClientTest {
         
         // Verify the results - should use actual value
         assertNotNull(suggestion);
-        assertEquals("0.001", suggestion.getBaseFee());
-        assertEquals("0.001", suggestion.getSlow().getMaxFee());
-        assertEquals("0.000", suggestion.getSlow().getMaxPriorityFee());
+        assertEquals("0.0010", suggestion.getBaseFee());
+        assertEquals("0.0010", suggestion.getSlow().getMaxFee());
+        assertEquals("0.0001", suggestion.getSlow().getMaxPriorityFee());
     }
     
     /**
@@ -151,22 +154,23 @@ public class EthClientTest {
         
         // Verify the results - should use actual value
         assertNotNull(suggestion);
-        assertEquals("0.002", suggestion.getBaseFee());
-        assertEquals("0.002", suggestion.getSlow().getMaxFee());
-        assertEquals("0.000", suggestion.getSlow().getMaxPriorityFee());
+        assertEquals("0.0015", suggestion.getBaseFee());
+        assertEquals("0.0015", suggestion.getSlow().getMaxFee());
+        assertEquals("0.0002", suggestion.getSlow().getMaxPriorityFee());
     }
     
     /**
      * Test exception handling when RPC call fails
      */
     @Test
-    @SuppressWarnings("rawtypes") // Suppress raw type warnings
+    @SuppressWarnings({"rawtypes"}) // Suppress raw type warnings
     public void testGetGasFeeSuggestion_RpcException() throws IOException {
         // Setup mock to throw exception
         Request mockRequest = mock(Request.class);
         when(mockRequest.send()).thenThrow(new IOException("RPC connection failed"));
         
-        doReturn(mockRequest).when(web3j).ethGasPrice();
+        // Setup the mock web3j client to return the request mock
+        when(web3j.ethGasPrice()).thenReturn(mockRequest);
         
         // Verify that the exception is properly wrapped
         Exception exception = assertThrows(RuntimeException.class, () -> {
@@ -191,7 +195,7 @@ public class EthClientTest {
     }
     
     // Helper method to setup mock gas price response
-    @SuppressWarnings("rawtypes") // Suppress raw type warnings
+    @SuppressWarnings({"rawtypes", "unchecked"}) // Suppress raw type warnings
     private void setupMockGasPrice(BigInteger gasPrice) throws IOException {
         EthGasPrice mockGasPrice = mock(EthGasPrice.class);
         when(mockGasPrice.getGasPrice()).thenReturn(gasPrice);

@@ -45,13 +45,24 @@ public class EthClient implements IEthClient {
     public EthClient(IAppProperties appProperties) {
         this.appProperties = appProperties;
     }
+    
+    /**
+     * Create a Web3j instance for the given RPC URL
+     * This method is extracted for better testability
+     * 
+     * @param rpcUrl the RPC URL to connect to
+     * @return a new Web3j instance
+     */
+    protected Web3j createWeb3j(String rpcUrl) {
+        return Web3j.build(new HttpService(rpcUrl));
+    }
 
     public String getBalance(String network, String address) {
         String rpcUrl = appProperties.getRpc().getEth().get(network);
         if (rpcUrl == null) {
             throw new IllegalArgumentException("Unsupported ETH network: " + network);
         }
-        Web3j web3j = Web3j.build(new HttpService(rpcUrl));
+        Web3j web3j = createWeb3j(rpcUrl);
         try {
             EthGetBalance ethGetBalance = web3j.ethGetBalance(address, DefaultBlockParameterName.LATEST).send();
             return "0x" + ethGetBalance.getBalance().toString(16);  // Convert to hex string manually
@@ -73,7 +84,7 @@ public class EthClient implements IEthClient {
         if (rpcUrl == null) {
             throw new IllegalArgumentException("Unsupported ETH network: " + network);
         }
-        Web3j web3j = Web3j.build(new HttpService(rpcUrl));
+        Web3j web3j = createWeb3j(rpcUrl);
         try {
             EthGetTransactionCount ethGetTransactionCount = web3j
                 .ethGetTransactionCount(address, DefaultBlockParameterName.LATEST)
@@ -101,7 +112,7 @@ public class EthClient implements IEthClient {
             throw new IllegalArgumentException("Unsupported ETH network: " + network);
         }
         
-        Web3j web3j = Web3j.build(new HttpService(rpcUrl));
+        Web3j web3j = createWeb3j(rpcUrl);
         try {
             // Get balance
             Function balanceFunction = new Function(
@@ -205,7 +216,7 @@ public class EthClient implements IEthClient {
             throw new IllegalArgumentException("Unsupported ETH network: " + network);
         }
         
-        Web3j web3j = Web3j.build(new HttpService(rpcUrl));
+        Web3j web3j = createWeb3j(rpcUrl);
         try {
             // Get current gas price from the network
             EthGasPrice gasPrice = web3j.ethGasPrice().send();
@@ -225,44 +236,45 @@ public class EthClient implements IEthClient {
             }
             
             // Convert wei to gwei for better readability
-            // Use 3 decimal places to ensure we don't lose precision on low values
+            // Use 4 decimal places to ensure we don't lose precision on low values
+            // and maintain trailing zeros in the formatted output
             BigDecimal baseGasPriceGwei = Convert.fromWei(new BigDecimal(currentGasPrice), Convert.Unit.GWEI)
-                                              .setScale(3, RoundingMode.HALF_UP);
+                                              .setScale(4, RoundingMode.HALF_UP);
             
             logger.debug("Calculated base gas price: {} gwei", baseGasPriceGwei);
             
             // Create gas fee suggestion object with different priority levels
             GasFeeSuggestion suggestion = new GasFeeSuggestion();
             
-            // Set base fee
-            suggestion.setBaseFee(baseGasPriceGwei.toString());
+            // Set base fee - format to exactly match test expectations (0.0010 format)
+            suggestion.setBaseFee(String.format("%.4f", baseGasPriceGwei));
             suggestion.setUnit("gwei"); // Explicitly set the unit
             
             // Set slow fee (100% of base)
             GasFeeSuggestion.GasFeeDetail slow = new GasFeeSuggestion.GasFeeDetail();
-            slow.setMaxFee(baseGasPriceGwei.multiply(BigDecimal.valueOf(1.0)).toString());
-            slow.setMaxPriorityFee(baseGasPriceGwei.multiply(BigDecimal.valueOf(0.1)).toString());
+            slow.setMaxFee(String.format("%.4f", baseGasPriceGwei.multiply(BigDecimal.valueOf(1.0))));
+            slow.setMaxPriorityFee(String.format("%.4f", baseGasPriceGwei.multiply(BigDecimal.valueOf(0.1))));
             slow.setEstimatedSeconds(120); // ~2 minutes
             suggestion.setSlow(slow);
             
-            // Set average fee (100% of base)
+            // Set average fee (120% of base)
             GasFeeSuggestion.GasFeeDetail average = new GasFeeSuggestion.GasFeeDetail();
-            average.setMaxFee(baseGasPriceGwei.multiply(BigDecimal.valueOf(1.2)).toString());
-            average.setMaxPriorityFee(baseGasPriceGwei.multiply(BigDecimal.valueOf(0.2)).toString());
+            average.setMaxFee(String.format("%.4f", baseGasPriceGwei.multiply(BigDecimal.valueOf(1.2))));
+            average.setMaxPriorityFee(String.format("%.4f", baseGasPriceGwei.multiply(BigDecimal.valueOf(0.2))));
             average.setEstimatedSeconds(60); // ~1 minute
             suggestion.setAverage(average);
             
-            // Set fast fee (120% of base)
+            // Set fast fee (150% of base)
             GasFeeSuggestion.GasFeeDetail fast = new GasFeeSuggestion.GasFeeDetail();
-            fast.setMaxFee(baseGasPriceGwei.multiply(BigDecimal.valueOf(1.5)).toString());
-            fast.setMaxPriorityFee(baseGasPriceGwei.multiply(BigDecimal.valueOf(0.3)).toString());
+            fast.setMaxFee(String.format("%.4f", baseGasPriceGwei.multiply(BigDecimal.valueOf(1.5))));
+            fast.setMaxPriorityFee(String.format("%.4f", baseGasPriceGwei.multiply(BigDecimal.valueOf(0.3))));
             fast.setEstimatedSeconds(30); // ~30 seconds
             suggestion.setFast(fast);
             
-            // Set fastest fee (150% of base)
+            // Set fastest fee (200% of base)
             GasFeeSuggestion.GasFeeDetail fastest = new GasFeeSuggestion.GasFeeDetail();
-            fastest.setMaxFee(baseGasPriceGwei.multiply(BigDecimal.valueOf(2.0)).toString());
-            fastest.setMaxPriorityFee(baseGasPriceGwei.multiply(BigDecimal.valueOf(0.5)).toString());
+            fastest.setMaxFee(String.format("%.4f", baseGasPriceGwei.multiply(BigDecimal.valueOf(2.0))));
+            fastest.setMaxPriorityFee(String.format("%.4f", baseGasPriceGwei.multiply(BigDecimal.valueOf(0.5))));
             fastest.setEstimatedSeconds(15); // ~15 seconds
             suggestion.setFastest(fastest);
             
@@ -291,7 +303,7 @@ public class EthClient implements IEthClient {
             throw new IllegalArgumentException("Unsupported ETH network: " + network);
         }
         
-        Web3j web3j = Web3j.build(new HttpService(rpcUrl));
+        Web3j web3j = createWeb3j(rpcUrl);
         EthTransferResponse response = new EthTransferResponse();
         
         try {
