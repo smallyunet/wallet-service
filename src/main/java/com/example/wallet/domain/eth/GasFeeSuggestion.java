@@ -28,35 +28,37 @@ public class GasFeeSuggestion {
     public static class GasFeeDetail {
         @JsonProperty("max_fee")
         private String maxFee;
-        
         @JsonProperty("max_priority_fee")
         private String maxPriorityFee;
-        
         @JsonProperty("estimated_seconds")
         private Integer estimatedSeconds;
-        
+
         public String getMaxFee() {
             return maxFee;
         }
-        
         public void setMaxFee(String maxFee) {
             this.maxFee = maxFee;
         }
-        
         public String getMaxPriorityFee() {
             return maxPriorityFee;
         }
-        
         public void setMaxPriorityFee(String maxPriorityFee) {
             this.maxPriorityFee = maxPriorityFee;
         }
-        
         public Integer getEstimatedSeconds() {
             return estimatedSeconds;
         }
-        
         public void setEstimatedSeconds(Integer estimatedSeconds) {
             this.estimatedSeconds = estimatedSeconds;
+        }
+
+        @Override
+        public String toString() {
+            return "{" +
+                    "max_fee='" + maxFee + '\'' +
+                    ", max_priority_fee='" + maxPriorityFee + '\'' +
+                    ", estimated_seconds=" + estimatedSeconds +
+                    '}';
         }
     }
     
@@ -105,7 +107,20 @@ public class GasFeeSuggestion {
         return unit;
     }
     
+
     public void setUnit(String unit) {
         this.unit = unit;
+    }
+
+    @Override
+    public String toString() {
+        return "GasFeeSuggestion{" +
+                "slow=" + slow +
+                ", average=" + average +
+                ", fast=" + fast +
+                ", fastest=" + fastest +
+                ", base_fee='" + baseFee + '\'' +
+                ", unit='" + unit + '\'' +
+                '}';
     }
 }

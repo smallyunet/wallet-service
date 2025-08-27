@@ -211,17 +211,34 @@ public class EthClient implements IEthClient {
             EthGasPrice gasPrice = web3j.ethGasPrice().send();
             BigInteger currentGasPrice = gasPrice.getGasPrice();
             
+            // Log the raw gas price for debugging
+            logger.debug("Raw gas price from {}: {} wei", network, currentGasPrice);
+            
+            // Check if gas price is below our minimum displayable precision (0.001 Gwei)
+            if (currentGasPrice.equals(BigInteger.ZERO) || currentGasPrice.compareTo(BigInteger.valueOf(1_000_000L)) < 0) {
+                // Gas price is either zero or too low to display with our precision
+                logger.warn("Gas price from {} is too low ({} wei) for our precision, using minimum displayable value", network, currentGasPrice);
+                // Use minimal value of 0.001 Gwei (1,000,000 wei) which is our minimum displayable precision
+                currentGasPrice = BigInteger.valueOf(1_000_000L);
+                logger.info("Using minimum gas price of {} Gwei", 
+                    Convert.fromWei(new BigDecimal(currentGasPrice), Convert.Unit.GWEI));
+            }
+            
             // Convert wei to gwei for better readability
+            // Use 3 decimal places to ensure we don't lose precision on low values
             BigDecimal baseGasPriceGwei = Convert.fromWei(new BigDecimal(currentGasPrice), Convert.Unit.GWEI)
-                                              .setScale(2, RoundingMode.HALF_UP);
+                                              .setScale(3, RoundingMode.HALF_UP);
+            
+            logger.debug("Calculated base gas price: {} gwei", baseGasPriceGwei);
             
             // Create gas fee suggestion object with different priority levels
             GasFeeSuggestion suggestion = new GasFeeSuggestion();
             
             // Set base fee
             suggestion.setBaseFee(baseGasPriceGwei.toString());
+            suggestion.setUnit("gwei"); // Explicitly set the unit
             
-            // Set slow fee (80% of base)
+            // Set slow fee (100% of base)
             GasFeeSuggestion.GasFeeDetail slow = new GasFeeSuggestion.GasFeeDetail();
             slow.setMaxFee(baseGasPriceGwei.multiply(BigDecimal.valueOf(1.0)).toString());
             slow.setMaxPriorityFee(baseGasPriceGwei.multiply(BigDecimal.valueOf(0.1)).toString());
@@ -248,6 +265,9 @@ public class EthClient implements IEthClient {
             fastest.setMaxPriorityFee(baseGasPriceGwei.multiply(BigDecimal.valueOf(0.5)).toString());
             fastest.setEstimatedSeconds(15); // ~15 seconds
             suggestion.setFastest(fastest);
+            
+            // Log the final gas fee suggestion object for debugging
+            logger.debug("Gas fee suggestion for {}: {}", network, suggestion);
             
             return suggestion;
             

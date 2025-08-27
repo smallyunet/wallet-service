@@ -19,6 +19,8 @@ import com.example.wallet.service.TransactionService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import org.springframework.http.ResponseEntity;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,6 +28,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/v1/eth/{network}")
 @Validated
 public class EthController {
+    private static final Logger logger = LoggerFactory.getLogger(EthController.class);
 
     /**
      * Query ERC-20 and other token information
@@ -120,7 +123,10 @@ public class EthController {
      */
     @GetMapping("/gas-fees")
     public ResponseEntity<GasFeeSuggestion> getGasFees(@PathVariable String network) {
-        return ResponseEntity.ok(transactionService.getGasFeeSuggestion(network));
+        logger.debug("[GAS-FEES] Request network: {}", network);
+        GasFeeSuggestion suggestion = transactionService.getGasFeeSuggestion(network);
+        logger.debug("[GAS-FEES] Response: {}", suggestion);
+        return ResponseEntity.ok(suggestion);
     }
     
     /**
